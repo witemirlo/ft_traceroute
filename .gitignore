@@ -1,0 +1,9 @@
+*.o
+*.log
+*.out
+*.swp
+*.a
+*.json
+.cache/
+.vscode/
+ft_traceroute
