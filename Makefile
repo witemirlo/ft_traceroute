@@ -20,9 +20,6 @@ re: fclean all
 
 $(NAME): $(OBJS) include/ft_traceroute.h
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
-ifneq ($(CFLAGS), $(VFLAGS))
-	make set_capabilities
-endif
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
