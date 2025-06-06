@@ -14,4 +14,6 @@
 # include <sys/types.h>
 # include <unistd.h>
 
+extern const char* __progname;
+
 #endif
