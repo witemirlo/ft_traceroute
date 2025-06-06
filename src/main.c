@@ -15,5 +15,6 @@ int main(int argc, char* argv[])
 	}
 
 	get_connection_data(&data, addr);
+	destroy_connection_data(&data);
 	return EXIT_SUCCESS;
 }
