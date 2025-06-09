@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	ft_memset(&data, 0, sizeof(t_connection_data) * max_hops);
 
 	for (uint8_t i = 0; i < max_hops; i++)
-		get_connection_data(&(data[i]), addr);
+		get_connection_data(data + i, addr);
 
 	for (uint8_t i = 0; i < max_hops; i++) {
 		if (sendto(data[i].sockfd, "hi", 2, 0, &(data[i].addr), data[i].addr_len) < 0)
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	// }
 	
 	for (uint8_t i = 0; i < max_hops; i++)
-		destroy_connection_data(&(data[i]));
+		destroy_connection_data(data + i);
 
 	return EXIT_SUCCESS;
 }

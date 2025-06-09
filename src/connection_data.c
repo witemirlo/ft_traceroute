@@ -6,18 +6,25 @@ static struct addrinfo get_hints(void)
 
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
 
 	return hints;
 }
 
 static void get_addrinfo(char const* const addr, struct addrinfo const* const hints, struct addrinfo** result)
 {
-	const int ret = getaddrinfo(addr, 0, hints, result);
+	static uint32_t port = 33434;
+	int             ret;
+	char            buffer[BUFSIZ];
 
+	snprintf(buffer, sizeof(buffer), "%d", port);
+	ret = getaddrinfo(addr, buffer, hints, result);
 	if (ret < 0) {
 		fprintf(stderr, "%s: %s: %s\n", __progname, addr, gai_strerror(ret));
 		exit(EXIT_FAILURE);
 	}
+
+	port++;
 }
 
 static int get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)
@@ -49,7 +56,7 @@ static void set_socket_options(int sockfd)
 		exit(EXIT_FAILURE);
 	}
 
-	if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
+	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
 		fprintf(stderr, "%s: Error: %s\n", __progname, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
