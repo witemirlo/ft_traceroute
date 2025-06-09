@@ -22,6 +22,8 @@ typedef struct s_connection_data {
         struct sockaddr_in addr;
         socklen_t          addr_len;
         int                sockfd;
+        int                packets_sent;
+        int                packets_received;
 } t_connection_data;
 
 // - CONNECTION DATA -----------------------------------------------------------
@@ -31,5 +33,6 @@ void error_destroy_connection_data(t_connection_data* data);
 
 // - UTILS ---------------------------------------------------------------------
 int ft_strcmp(const char *s1, const char *s2);
+void *ft_memset(void *b, int c, size_t len);
 
 #endif
