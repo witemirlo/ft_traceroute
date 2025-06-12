@@ -1,6 +1,17 @@
 #include "ft_traceroute.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
 const uint8_t max_hops = 30;
+
+void dump(void const* const buffer, size_t size)
+{
+	for (size_t i = 0; i < size; i++)
+		printf("%x ", ((uint8_t*)buffer)[i]);
+	printf("\n");
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -75,12 +86,14 @@ int main(int argc, char* argv[])
 				// TODO: leer el paquete
 				// TODO: que no edite el sockaddr original
 				ssize_t ret;
-				if ((ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len)) < 0) {
+				if ((ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len)) < 0) {
 					// TODO: control de errores
 					fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: borrar
 					ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
 				data_pt->packets_received++;
+				fprintf(stderr, "%s:%d: %2ld: %s\n", __FILE__, __LINE__, ret, inet_ntoa(data_pt->addr.sin_addr)); // TODO: borrar
+				dump(buffer, ret);
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
 				// TODO: comprobar el patete recibido para ver si ya ha terminado
 			}
