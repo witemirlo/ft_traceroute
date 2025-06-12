@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 		get_connection_data(data + i, addr);
 
 	for (uint8_t i = 0; i < max_hops; i++) {
-		if (sendto(data[i].sockfd, "hi", 2, 0, &(data[i].addr), data[i].addr_len) < 0)
+		if (sendto(data[i].sockfd, "hi", 2, 0, (struct sockaddr*)&(data[i].addr), data[i].addr_len) < 0)
 			fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno));
 	}
 
