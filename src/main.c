@@ -1,6 +1,4 @@
 #include "ft_traceroute.h"
-#include <string.h>
-#include <sys/socket.h>
 
 const uint8_t max_hops = 30;
 
@@ -79,11 +77,8 @@ int main(int argc, char* argv[])
 				ssize_t ret;
 				if ((ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len)) < 0) {
 					// TODO: control de errores
-					if (getnameinfo((struct sockaddr*)(&data_pt->addr), data_pt->addr_len, buffer, sizeof(buffer), NULL, 0, 0) < 0)
-						fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: borrar
-					else
-						fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, buffer); // TODO: borrar
 					fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: borrar
+					ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
 				data_pt->packets_received++;
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
