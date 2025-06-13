@@ -29,7 +29,9 @@ typedef struct s_connection_data {
 } t_connection_data;
 
 // - CONNECTION DATA -----------------------------------------------------------
-void get_connection_data(t_connection_data* data, char const* const str_addr);
+// void get_connection_data(t_connection_data* data, char const* const str_addr);
+void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints);
+
 void destroy_connection_data(t_connection_data* const data);
 void error_destroy_connection_data(t_connection_data* data);
 

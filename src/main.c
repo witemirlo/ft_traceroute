@@ -1,7 +1,4 @@
 #include "ft_traceroute.h"
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 
 const uint8_t max_hops = 30;
 
@@ -44,8 +41,13 @@ int main(int argc, char* argv[])
 
 	ft_memset(&data, 0, sizeof(t_connection_data) * max_hops);
 
+	struct addrinfo hints = {0};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+
 	for (uint8_t i = 0; i < max_hops; i++)
-		get_connection_data(data + i, addr);
+		get_connection_data(data + i, addr, &hints);
 
 	// for (uint8_t i = 0; i < max_hops; i++) {
 	// 	if (sendto(data[i].sockfd, "hi", 2, 0, (struct sockaddr*)&(data[i].addr), data[i].addr_len) < 0)

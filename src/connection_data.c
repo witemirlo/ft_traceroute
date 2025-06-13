@@ -1,16 +1,5 @@
 #include "ft_traceroute.h"
 
-static struct addrinfo get_hints(void)
-{
-	struct addrinfo hints = {0};
-
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = IPPROTO_UDP;
-
-	return hints;
-}
-
 static void get_addrinfo(char const* const addr, struct addrinfo const* const hints, struct addrinfo** result)
 {
 	static uint32_t port = 33434;
@@ -64,13 +53,12 @@ static void set_socket_options(int sockfd)
 	ttl++;
 }
 
-void get_connection_data(t_connection_data* data, char const* const str_addr)
+void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints)
 {
-	const struct addrinfo hints = get_hints();
-	struct addrinfo       *result = NULL;
-	struct addrinfo       *rp = NULL;
+	struct addrinfo *result = NULL;
+	struct addrinfo *rp = NULL;
 
-	get_addrinfo(str_addr, &hints, &result);
+	get_addrinfo(str_addr, hints, &result);
 	data->sockfd = get_fd_from_addrinfo(result, &rp);
 
 	if (data->sockfd < 0) {
