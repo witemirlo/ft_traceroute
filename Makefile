@@ -22,6 +22,9 @@ re: fclean all
 
 $(NAME): $(OBJS) include/ft_traceroute.h
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+ifneq ($(CFLAGS), $(VFLAGS))
+	make set_capabilities
+endif
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
@@ -32,6 +35,7 @@ valgrind:
 
 set_capabilities:
 	sudo setcap 'cap_net_raw=ep' $(shell pwd)/${NAME}
+# sudo setcap 'cap_net_bind_service=ep' $(shell pwd)/${NAME}
 
 set_ttl:
 	sudo sysctl -w net.ipv4.ip_default_ttl=$(TTL)

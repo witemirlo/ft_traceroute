@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
 	struct addrinfo hints = {0};
 	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_socktype = SOCK_RAW;
 	hints.ai_protocol = IPPROTO_UDP;
 
 	for (uint8_t i = 0; i < max_hops; i++)
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
 	// for (uint8_t i = 0; i < max_hops; i++) {
 	// 	if (sendto(data[i].sockfd, "hi", 2, 0, (struct sockaddr*)&(data[i].addr), data[i].addr_len) < 0)
-	// 		fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno));
+	// 		fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
 	// }
 
 	fd_set main_set, write_set, read_set;
@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
 	FD_ZERO(&main_set);;
 	for (uint8_t i = 0; i < max_hops; i++)
 		FD_SET(data[i].sockfd, &main_set);
-
-	uint8_t pending = max_hops;
+	
+	int8_t pending = max_hops;
 	while (1) {
 		write_set = main_set;
 		read_set = main_set;
@@ -73,12 +73,14 @@ int main(int argc, char* argv[])
 		for (uint8_t i = 0; i < max_hops; i++) {
 			t_connection_data* data_pt = data + i;
 
+			if (pending <= 0)
+				break;
 			if (FD_ISSET(data_pt->sockfd, &write_set)) {
 				// TODO: enviar paquete si no se han enviado mas de tres
 				if (data_pt->packets_sent < 3) {
 					if (sendto(data_pt->sockfd, payload, sizeof(payload), 0, (struct sockaddr*)&(data_pt->addr), data_pt->addr_len) < 0) {
 						// TODO: control de errores
-						fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno));
+						fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
 					}
 					data_pt->packets_sent++;
 				}
@@ -88,20 +90,20 @@ int main(int argc, char* argv[])
 				// TODO: leer el paquete
 				// TODO: que no edite el sockaddr original
 				ssize_t ret;
-				if ((ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len)) < 0) {
-					// TODO: control de errores
-					fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: borrar
-					ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
+				struct sockaddr_in tmp = data_pt->addr; // TODO: renombrar
+				socklen_t tmp2 = sizeof(tmp);
+
+				if ((ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&(tmp), &tmp2)) < 0) { // TODO: control de errores
+					fprintf(stderr, "%s:%d:\tdata_pt->sockfd(%d): %s\n", __FILE__, __LINE__, data_pt->sockfd, strerror(errno)); // TODO: borrar
+					// ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
 				data_pt->packets_received++;
-				fprintf(stderr, "%s:%d: %2ld: %s\n", __FILE__, __LINE__, ret, inet_ntoa(data_pt->addr.sin_addr)); // TODO: borrar
-				dump(buffer, ret);
+				fprintf(stderr, "%s:%d:\tdata_pt->sockfd(%d): %2ld: %s\n", __FILE__, __LINE__, data_pt->sockfd, ret, inet_ntoa(tmp.sin_addr)); // TODO: borrar
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
 				// TODO: comprobar el patete recibido para ver si ya ha terminado
 			}
 
 			if (data_pt->packets_received == 3) { // TODO: macro o variable para este numero
-				printf("%s:%d: TODO\n", __FILE__, __LINE__);
 				// TODO: imprimir la informacion
 				// TODO: 74.125.37.87 (74.125.37.87)  4.696 ms 142.250.232.7 (142.250.232.7)  5.566 ms 74.125.37.87 (74.125.37.87)  8.569 ms, puede que los paquetes llegen de ips diferentes
 				// TODO: eliminar de main_set
@@ -111,7 +113,7 @@ int main(int argc, char* argv[])
 		}
 
 		// TODO: si ya ha terminado salir del bucle
-		if (!pending)
+		if (pending <= 0)
 			break;
 	}
 	
