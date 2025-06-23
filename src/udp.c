@@ -44,7 +44,6 @@ void set_udp(t_packet* const packet)
 	packet->udphdr.dest = htons(dest_port); // TODO: PONER LOS DATOS
 	packet->udphdr.len = htons(sizeof(*packet)); // TODO: PONER LOS DATOS
         packet->udphdr.check = udp_checksum(packet);
-
 	
 	dest_port++;
 }
