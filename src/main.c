@@ -98,7 +98,12 @@ int main(int argc, char* argv[])
 					// ret = recvfrom(data_pt->sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(data_pt->addr), &data_pt->addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
 				data_pt->packets_received++;
-				fprintf(stderr, "%s:%d:\tdata_pt->sockfd(%d): %2ld: %s\n", __FILE__, __LINE__, data_pt->sockfd, ret, inet_ntoa(tmp.sin_addr)); // TODO: borrar
+				fprintf(stderr, "%s:%d:\tdata_pt->sockfd(%d): %2ld: %s\n",
+					__FILE__, __LINE__,
+					data_pt->sockfd,
+					ret,
+					inet_ntoa(((struct ip*)buffer)->ip_src)
+				); // TODO: borrar
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
 				// TODO: comprobar el patete recibido para ver si ya ha terminado
 			}
