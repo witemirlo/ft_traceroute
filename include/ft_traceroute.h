@@ -7,6 +7,7 @@
 # include <netinet/in.h>
 # include <netinet/ip.h>
 # include <netinet/ip_icmp.h>
+# include <netinet/udp.h>
 # include <stdint.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -28,6 +29,12 @@ typedef struct s_connection_data {
         int                packets_sent;
         int                packets_received;
 } t_connection_data;
+
+typedef struct s_packet
+{
+        struct udphdr udphdr;
+        char          payload[32];
+} t_packet;
 
 // - CONNECTION DATA -----------------------------------------------------------
 // void get_connection_data(t_connection_data* data, char const* const str_addr);

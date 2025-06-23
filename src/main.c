@@ -1,4 +1,5 @@
 #include "ft_traceroute.h"
+#include <netinet/udp.h>
 
 const uint8_t max_hops = 30;
 
@@ -8,7 +9,6 @@ void dump(void const* const buffer, size_t size)
 		printf("%x ", ((uint8_t*)buffer)[i]);
 	printf("\n");
 }
-
 
 int main(int argc, char* argv[])
 {
