@@ -1,5 +1,4 @@
 #include "ft_traceroute.h"
-#include <netinet/in.h>
 
 static u_int16_t sum_ones_complement(u_int16_t a, u_int16_t b)
 {
@@ -33,17 +32,19 @@ uint16_t udp_checksum(t_packet const* const packet)
         return checksum;
 }
 
-void update_udp(t_packet* const packet)
+void set_udp(t_packet* const packet)
 {
-        packet->udphdr.check = udp_checksum(packet);
-}
+	static const uint8_t payload[] = "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f";
+	static uint16_t      dest_port = 33434;
 
-void init_udp(t_packet* const packet)
-{
-        memset(packet, 0, sizeof(*packet));
+        ft_memset(packet, 0, sizeof(packet->udphdr));
+        ft_memcpy(packet->payload, payload, sizeof(packet->payload));
 
 	packet->udphdr.source = htons(0); // TODO: PONER LOS DATOS
-	packet->udphdr.dest = htons(0); // TODO: PONER LOS DATOS
+	packet->udphdr.dest = htons(dest_port); // TODO: PONER LOS DATOS
 	packet->udphdr.len = htons(sizeof(*packet)); // TODO: PONER LOS DATOS
-	packet->udphdr.check = udp_checksum(packet);
+        packet->udphdr.check = udp_checksum(packet);
+
+	
+	dest_port++;
 }

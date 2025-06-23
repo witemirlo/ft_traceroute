@@ -26,3 +26,22 @@ void *ft_memset(void *b, int c, size_t len)
 	}
 	return (ptrb);
 }
+
+void    *ft_memcpy(void *dst, const void *src, size_t n)
+{
+        unsigned char           *ptrdst;
+        const unsigned char     *ptrsrc;
+        size_t                          i;
+
+        if (dst == NULL && src == NULL)
+                return (NULL);
+        ptrdst = dst;
+        ptrsrc = src;
+        i = 0;
+        while (i < n)
+        {
+                ptrdst[i] = ptrsrc[i];
+                i++;
+        }
+        return (ptrdst);
+}
