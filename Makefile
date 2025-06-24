@@ -2,6 +2,7 @@ NAME     := ft_traceroute
 
 SRCS     := src/main.c\
 	    src/connection_data.c\
+	    src/udp.c\
 	    src/utils.c
 
 OBJS     := $(SRCS:.c=.o)

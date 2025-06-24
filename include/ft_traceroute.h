@@ -45,5 +45,8 @@ void error_destroy_connection_data(t_connection_data* data);
 int ft_strcmp(const char *s1, const char *s2);
 void *ft_memset(void *b, int c, size_t len);
 void *ft_memcpy(void *dst, const void *src, size_t n);
+// - UDP PACKETS ---------------------------------------------------------------
+void set_udp(t_packet* const packet);
+uint16_t udp_checksum(t_packet const* const packet);
 
 #endif

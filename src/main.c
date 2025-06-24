@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
 {
 	t_connection_data data;
 	const char*       addr = NULL;
-	const char        payload[32] = {0}; // TODO: poner otro payload
 	char              buffer[BUFSIZ];
 
 	for (int i = 1; i < argc; i++) {
@@ -40,7 +39,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ft_memset(&data, 0, sizeof(t_connection_data) * max_hops);
+	ft_memset(&data, 0, sizeof(t_connection_data));
 
 	struct addrinfo hints = {0};
 	hints.ai_family = AF_INET;
@@ -50,8 +49,8 @@ int main(int argc, char* argv[])
 	fd_set main_set;
 	struct timeval tv;
 	
-	int8_t packets_sent = 0;
-	while (packets_sent < max_hops) {
+	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
+		printf("%d TODO:\n", ttl_round);
 		get_connection_data(&data, addr, &hints);
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
@@ -64,13 +63,12 @@ int main(int argc, char* argv[])
 			}
 
 			if (FD_ISSET(data.sockfd, &main_set)) {
-				// TODO: enviar paquete si no se han enviado mas de tres
-				if (packets_sent < 3) {
-					if (sendto(data.sockfd, payload, sizeof(payload), 0, (struct sockaddr*)&(data.addr), data.addr_len) < 0) {
-						// TODO: control de errores
-						fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
-					}
-					packets_sent++;
+				t_packet packet;
+
+				set_udp(&packet);
+				if (sendto(data.sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&(data.addr), data.addr_len) < 0) {
+					// TODO: control de errores
+					fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
 				}
 			}
 
@@ -79,7 +77,6 @@ int main(int argc, char* argv[])
 			FD_ZERO(&main_set);;
 			FD_SET(data.sockfd, &main_set);
 			if (select(data.sockfd + 1, &main_set, NULL, NULL, &tv) < 0) {
-				// TODO: poner el timeout en tv
 				// TODO: el paquete no ha llegado, poner *
 			}
 			if (FD_ISSET(data.sockfd, &main_set)) {
