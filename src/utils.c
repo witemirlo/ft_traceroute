@@ -33,7 +33,7 @@ void    *ft_memcpy(void *dst, const void *src, size_t n)
         const unsigned char     *ptrsrc;
         size_t                          i;
 
-        if (dst == NULL && src == NULL)
+        if (dst == NULL || src == NULL)
                 return (NULL);
         ptrdst = dst;
         ptrsrc = src;
