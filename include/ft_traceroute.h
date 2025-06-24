@@ -26,8 +26,6 @@ typedef struct s_connection_data {
         struct sockaddr_in addr;
         socklen_t          addr_len;
         int                sockfd;
-        int                packets_sent;
-        int                packets_received;
 } t_connection_data;
 
 typedef struct s_packet
