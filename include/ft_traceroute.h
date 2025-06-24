@@ -20,6 +20,7 @@
 
 // - PROGRAM NAME --------------------------------------------------------------
 extern const char* __progname;
+extern uint16_t dst_port;
 
 // - TYPES ---------------------------------------------------------------------
 typedef struct s_connection_data {

@@ -1,12 +1,13 @@
 #include "ft_traceroute.h"
 
+uint16_t dst_port = 33434;
+
 static void get_addrinfo(char const* const addr, struct addrinfo const* const hints, struct addrinfo** result)
 {
-	static uint32_t port = 33434; // TODO: borrar
 	int             ret;
 	char            buffer[BUFSIZ];
 
-	snprintf(buffer, sizeof(buffer), "%d", port);
+	snprintf(buffer, sizeof(buffer), "%d", dst_port);
 	// ret = getaddrinfo(addr, buffer, hints, result);
 	ret = getaddrinfo(addr, NULL, hints, result);
 	if (ret < 0) {
@@ -14,7 +15,7 @@ static void get_addrinfo(char const* const addr, struct addrinfo const* const hi
 		exit(EXIT_FAILURE);
 	}
 
-	port++;
+	dst_port++;
 }
 
 static int get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)

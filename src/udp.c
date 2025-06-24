@@ -25,15 +25,13 @@ uint16_t udp_checksum(t_packet const* const packet)
 void set_udp(t_packet* const packet)
 {
 	static const uint8_t payload[] = "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f";
-	static uint16_t      dest_port = 33434;
+	const uint16_t       src_port = dst_port + payload[dst_port % sizeof(payload)];
 
         ft_memset(packet, 0, sizeof(packet->udphdr));
         ft_memcpy(packet->payload, payload, sizeof(packet->payload));
 
-	packet->udphdr.source = htons(0); // TODO: PONER LOS DATOS
-	packet->udphdr.dest = htons(dest_port); // TODO: PONER LOS DATOS
+	packet->udphdr.source = htons(src_port); // TODO: PONER LOS DATOS
+	packet->udphdr.dest = htons(dst_port); // TODO: PONER LOS DATOS
 	packet->udphdr.len = htons(sizeof(*packet)); // TODO: PONER LOS DATOS
         packet->udphdr.check = udp_checksum(packet);
-	
-	dest_port++;
 }

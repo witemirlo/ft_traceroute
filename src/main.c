@@ -1,6 +1,4 @@
 #include "ft_traceroute.h"
-#include <netinet/udp.h>
-#include <stdint.h>
 
 const uint8_t max_hops = 30;
 
@@ -48,9 +46,12 @@ int main(int argc, char* argv[])
 
 	fd_set main_set;
 	struct timeval tv;
+
+	struct ip* ip_ptr = (struct ip*)buffer;
+	struct icmp* icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 	
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		printf("%d TODO:\n", ttl_round);
+		printf("%2d", ttl_round);
 		get_connection_data(&data, addr, &hints);
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
@@ -85,22 +86,27 @@ int main(int argc, char* argv[])
 				ssize_t ret;
 				struct sockaddr_in tmp = data.addr; // TODO: renombrar
 				socklen_t tmp2 = sizeof(tmp);
+				ft_memset(buffer, 0, sizeof(buffer));
 
 				if ((ret = recvfrom(data.sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&(tmp), &tmp2)) < 0) { // TODO: control de errores
 					fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data.sockfd, strerror(errno)); // TODO: borrar
 					// ret = recvfrom(data.sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(addr), &addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
-				fprintf(stderr, "%s:%d:\tsockfd(%d): %2ld: %s\n",
-					__FILE__, __LINE__,
-					data.sockfd,
-					ret,
-					inet_ntoa(((struct ip*)buffer)->ip_src)
-				); // TODO: borrar
+				// TODO: sólo los que tengan el ttl expired
+				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
+
+				printf("  %s",
+					inet_ntoa(icmp_ptr->icmp_ip.ip_src)
+				);
+
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
 				// TODO: comprobar el patete recibido para ver si ya ha terminado
+			} else {
+				// TODO: el else con el * de que no ha llegado en el tiempo
+				printf("  *");
 			}
-			// TODO: el else con el * de que no ha llegado en el tiempo
 		}
+		printf("\n");
 		destroy_connection_data(&data);
 		// TODO: si ya ha terminado salir del bucle
 	}
