@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			tv.tv_sec = 1; // TODO: mirar el timeout real
+			tv.tv_sec = 5; // TODO: mirar el timeout real
 			tv.tv_usec = 0;
 			FD_ZERO(&main_set);;
 			FD_SET(data.sockfd, &main_set);
