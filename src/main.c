@@ -1,10 +1,10 @@
 #include "ft_traceroute.h"
-#include <sys/select.h>
 
 const uint8_t max_hops = 30;
 
 void dump(void const* const buffer, size_t size)
 {
+	printf("\n");
 	for (size_t i = 0; i < size; i++)
 		printf("%x ", ((uint8_t*)buffer)[i]);
 	printf("\n");
@@ -104,8 +104,10 @@ int main(int argc, char* argv[])
 				// TODO: sólo los que tengan el ttl expired
 				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
 
+				dump(buffer, 50);
 				printf("  %s",
-					inet_ntoa(icmp_ptr->icmp_ip.ip_src)
+					// inet_ntoa(icmp_ptr->icmp_ip.ip_src)
+					inet_ntoa(ip_ptr->ip_src)
 				);
 
 				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
