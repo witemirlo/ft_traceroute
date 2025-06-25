@@ -1,4 +1,5 @@
 #include "ft_traceroute.h"
+#include <sys/select.h>
 
 const uint8_t max_hops = 30;
 
@@ -44,26 +45,39 @@ int main(int argc, char* argv[])
 	hints.ai_socktype = SOCK_RAW;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	fd_set main_set;
 	struct timeval tv;
+	fd_set main_set, write_set, read_set;
+	FD_ZERO(&main_set);;
+	FD_SET(data.sockfd, &main_set);
 
 	struct ip* ip_ptr = (struct ip*)buffer;
 	struct icmp* icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 	
+	setbuf(stdout, NULL); // TODO: borrar
+	setbuf(stderr, NULL); // TODO: borrar
+
+	FD_ZERO(&write_set);
+	FD_ZERO(&read_set);
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		printf("%2d", ttl_round);
+		// printf("%2d", ttl_round);
 		get_connection_data(&data, addr, &hints);
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
 			// TODO: wip
+			tv.tv_sec = 5; // TODO: mirar el timeout real
+			tv.tv_usec = 0;
+			
+			FD_CLR(data.sockfd, &write_set);
+			FD_CLR(data.sockfd, &read_set);
 
-			FD_ZERO(&main_set);;
-			FD_SET(data.sockfd, &main_set);
-			if (select(data.sockfd + 1, NULL, &main_set, NULL, NULL) < 0) {
+			FD_SET(data.sockfd, &write_set);
+			FD_SET(data.sockfd, &read_set);
+
+			if (select(data.sockfd + 1, NULL, &write_set, NULL, &tv) < 0) {
 				continue;
 			}
 
-			if (FD_ISSET(data.sockfd, &main_set)) {
+			if (FD_ISSET(data.sockfd, &write_set)) {
 				t_packet packet;
 
 				set_udp(&packet);
@@ -73,14 +87,10 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			tv.tv_sec = 5; // TODO: mirar el timeout real
-			tv.tv_usec = 0;
-			FD_ZERO(&main_set);;
-			FD_SET(data.sockfd, &main_set);
-			if (select(data.sockfd + 1, &main_set, NULL, NULL, &tv) < 0) {
+			if (select(data.sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
 				// TODO: el paquete no ha llegado, poner *
 			}
-			if (FD_ISSET(data.sockfd, &main_set)) {
+			if (FD_ISSET(data.sockfd, &read_set)) {
 				// TODO: leer el paquete
 				// TODO: que no edite el sockaddr original
 				ssize_t ret;
@@ -88,7 +98,7 @@ int main(int argc, char* argv[])
 				socklen_t tmp2 = sizeof(tmp);
 				ft_memset(buffer, 0, sizeof(buffer));
 
-				if ((ret = recvfrom(data.sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&(tmp), &tmp2)) < 0) { // TODO: control de errores
+				if ((ret = recvfrom(data.sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&tmp, &tmp2)) < 0) { // TODO: control de errores
 					fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data.sockfd, strerror(errno)); // TODO: borrar
 					// ret = recvfrom(data.sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(addr), &addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
