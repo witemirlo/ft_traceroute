@@ -53,13 +53,13 @@ int main(int argc, char* argv[])
 	struct ip* ip_ptr = (struct ip*)buffer;
 	struct icmp* icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 	
-	setbuf(stdout, NULL); // TODO: borrar
-	setbuf(stderr, NULL); // TODO: borrar
+	// setbuf(stdout, NULL); // TODO: borrar
+	// setbuf(stderr, NULL); // TODO: borrar
 
 	FD_ZERO(&write_set);
 	FD_ZERO(&read_set);
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		// printf("%2d", ttl_round);
+		printf("%2d", ttl_round);
 		get_connection_data(&data, addr, &hints);
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 			FD_SET(data.sockfd, &write_set);
 			FD_SET(data.sockfd, &read_set);
 
-			if (select(data.sockfd + 1, NULL, &write_set, NULL, &tv) < 0) {
+			if (select(data.sockfd + 1, NULL, &write_set, NULL, NULL) < 0) {
 				continue;
 			}
 
@@ -100,7 +100,6 @@ int main(int argc, char* argv[])
 
 				if ((ret = recvfrom(data.sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&tmp, &tmp2)) < 0) { // TODO: control de errores
 					fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data.sockfd, strerror(errno)); // TODO: borrar
-					// ret = recvfrom(data.sockfd, buffer, sizeof(buffer), MSG_ERRQUEUE, (struct sockaddr*)&(addr), &addr_len); // TODO: esto no está funcionando, pero si que retorna el tamano del paquete
 				}
 				// TODO: sólo los que tengan el ttl expired
 				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
