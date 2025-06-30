@@ -42,10 +42,10 @@ static void set_socket_options(int sockfd)
 {
 	static int ttl = 1;
 
-	// if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
-	// 	fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del  comienzo
-	// 	exit(EXIT_FAILURE);
-	// }
+	if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
+		fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del  comienzo
+		exit(EXIT_FAILURE);
+	}
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
 		fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del  comienzo
@@ -73,6 +73,7 @@ void get_connection_data(t_connection_data* data, char const* const str_addr, st
 
 	freeaddrinfo(result);
 
+	bind(data->sockfd, data->addr, data->addr_len);
 	set_socket_options(data->sockfd);
 }
 

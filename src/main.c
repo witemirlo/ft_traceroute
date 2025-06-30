@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 {
 	t_connection_data data;
 	const char*       addr = NULL;
-	char              buffer[BUFSIZ];
+	unsigned char     buffer[BUFSIZ];
 
 	for (int i = 1; i < argc; i++) {
 		if (ft_strcmp(argv[i], "--help") == 0) {
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
 			// TODO: wip
-			tv.tv_sec = 5; // TODO: mirar el timeout real
+			tv.tv_sec = 1; // TODO: poner un 5
 			tv.tv_usec = 0;
 			
 			FD_CLR(data.sockfd, &write_set);
@@ -87,9 +87,11 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			fprintf(stderr, "%s:%d:\tcheckear si se puede leer\n", __FILE__, __LINE__); // TODO: borrar
 			if (select(data.sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
 				// TODO: el paquete no ha llegado, poner *
 			}
+
 			if (FD_ISSET(data.sockfd, &read_set)) {
 				// TODO: leer el paquete
 				// TODO: que no edite el sockaddr original
@@ -104,7 +106,6 @@ int main(int argc, char* argv[])
 				// TODO: sólo los que tengan el ttl expired
 				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
 
-				dump(buffer, 50);
 				printf("  %s",
 					// inet_ntoa(icmp_ptr->icmp_ip.ip_src)
 					inet_ntoa(ip_ptr->ip_src)
