@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	struct addrinfo hints = {0};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_RAW;
-	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_protocol = IPPROTO_ICMP;
 
 	struct timeval tv;
 	fd_set main_set, write_set, read_set;
@@ -58,13 +58,15 @@ int main(int argc, char* argv[])
 
 	FD_ZERO(&write_set);
 	FD_ZERO(&read_set);
+	struct icmp packet;
+	init_icmp(&packet);
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		printf("%2d", ttl_round);
 		get_connection_data(&data, addr, &hints);
 
 		for (int8_t n_packet = 0; n_packet < 3; n_packet++) {
 			// TODO: wip
-			tv.tv_sec = 1; // TODO: poner un 5
+			tv.tv_sec = 5; // TODO: poner un 5
 			tv.tv_usec = 0;
 			
 			FD_CLR(data.sockfd, &write_set);
@@ -78,16 +80,15 @@ int main(int argc, char* argv[])
 			}
 
 			if (FD_ISSET(data.sockfd, &write_set)) {
-				t_packet packet;
-
-				set_udp(&packet);
+				// struct icmp packet;
+				// set_udp(&packet);
+				update_icmp(&packet, "", 0);
 				if (sendto(data.sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&(data.addr), data.addr_len) < 0) {
 					// TODO: control de errores
 					fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
 				}
 			}
 
-			fprintf(stderr, "%s:%d:\tcheckear si se puede leer\n", __FILE__, __LINE__); // TODO: borrar
 			if (select(data.sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
 				// TODO: el paquete no ha llegado, poner *
 			}
@@ -96,12 +97,12 @@ int main(int argc, char* argv[])
 				// TODO: leer el paquete
 				// TODO: que no edite el sockaddr original
 				ssize_t ret;
-				struct sockaddr_in tmp = data.addr; // TODO: renombrar
+				struct sockaddr_in tmp = data.addr;
 				socklen_t tmp2 = sizeof(tmp);
-				ft_memset(buffer, 0, sizeof(buffer));
+				ft_memset(buffer, 255, sizeof(buffer));
 
 				if ((ret = recvfrom(data.sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&tmp, &tmp2)) < 0) { // TODO: control de errores
-					fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data.sockfd, strerror(errno)); // TODO: borrar
+					// fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data.sockfd, strerror(errno)); // TODO: borrar
 				}
 				// TODO: sólo los que tengan el ttl expired
 				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
@@ -117,10 +118,14 @@ int main(int argc, char* argv[])
 				// TODO: el else con el * de que no ha llegado en el tiempo
 				printf("  *");
 			}
+			if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
+				break; // tendria que tener los tres paquetes recibidos
 		}
 		printf("\n");
 		destroy_connection_data(&data);
 		// TODO: si ya ha terminado salir del bucle
+		if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
+			break; // tendria que tener los tres paquetes recibidos
 	}
 	
 	return EXIT_SUCCESS;

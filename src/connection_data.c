@@ -73,7 +73,6 @@ void get_connection_data(t_connection_data* data, char const* const str_addr, st
 
 	freeaddrinfo(result);
 
-	bind(data->sockfd, data->addr, data->addr_len);
 	set_socket_options(data->sockfd);
 }
 
