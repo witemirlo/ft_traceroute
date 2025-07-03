@@ -2,11 +2,13 @@ NAME     := ft_traceroute
 
 SRCS     := src/main.c\
 	    src/connection_data.c\
-	    src/udp.c\
 	    src/icmp.c\
+	    src/init.c\
+	    src/udp.c\
 	    src/utils.c
 
 OBJS     := $(SRCS:.c=.o)
+DEPS     := $(SRCS:.c=.d)
 
 CC       := gcc
 CFLAGS   := -Wall -Wextra -O0 -g3 -pedantic -Wformat=2 -Wformat-overflow=2 -fsanitize=address,pointer-compare,pointer-subtract,leak,undefined,float-divide-by-zero,float-cast-overflow
@@ -29,7 +31,9 @@ ifneq ($(CFLAGS), $(VFLAGS))
 endif
 
 %.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -c $< -o $@
+
+-include $(DEPS)
 
 valgrind:
 	make re CFLAGS="$(VFLAGS)"
@@ -37,13 +41,12 @@ valgrind:
 
 set_capabilities:
 	sudo setcap 'cap_net_raw=ep' $(shell pwd)/${NAME}
-# sudo setcap 'cap_net_bind_service=ep' $(shell pwd)/${NAME}
 
 set_ttl:
 	sudo sysctl -w net.ipv4.ip_default_ttl=$(TTL)
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(DEPS)
 
 fclean: clean
 	rm -f $(NAME)

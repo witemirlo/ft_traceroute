@@ -11,7 +11,7 @@ static void get_addrinfo(char const* const addr, struct addrinfo const* const hi
 	// ret = getaddrinfo(addr, buffer, hints, result);
 	ret = getaddrinfo(addr, NULL, hints, result);
 	if (ret < 0) {
-		fprintf(stderr, "%s:%d:\t%s: %s: %s\n", __FILE__, __LINE__, __progname, addr, gai_strerror(ret)); // TODO: limpiar lo del comienzo
+		fprintf(stderr, "%s:%d:\tft_traceroute: %s: %s\n", __FILE__, __LINE__, addr, gai_strerror(ret)); // TODO: limpiar lo del comienzo
 		exit(EXIT_FAILURE);
 	}
 
@@ -30,7 +30,7 @@ static int get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)
 	}
 
 	if (addr == NULL) {
-		fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del comienzo
+		fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del comienzo
 		exit(EXIT_FAILURE);
 	}
 
@@ -43,12 +43,12 @@ static void set_socket_options(int sockfd)
 	static int ttl = 1;
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
-		fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del  comienzo
+		fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del  comienzo
 		exit(EXIT_FAILURE);
 	}
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
-		fprintf(stderr, "%s:%d:\t%s: Error: %s\n", __FILE__, __LINE__, __progname, strerror(errno)); // TODO: limpiar lo del  comienzo
+		fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del  comienzo
 		exit(EXIT_FAILURE);
 	}
 
@@ -83,7 +83,7 @@ void destroy_connection_data(t_connection_data* const data)
 
 void error_destroy_connection_data(t_connection_data* data)
 {
-        fprintf(stderr, "%s: Error: %s\n", __progname, strerror(errno));
+        fprintf(stderr, "ft_traceroute: Error: %s\n", strerror(errno));
         destroy_connection_data(data);
         exit(EXIT_FAILURE);
 }

@@ -19,7 +19,6 @@
 # include <unistd.h>
 
 // - PROGRAM NAME --------------------------------------------------------------
-extern const char* __progname;
 extern uint16_t dst_port;
 
 // - TYPES ---------------------------------------------------------------------
@@ -35,8 +34,10 @@ typedef struct s_packet
         char          payload[32];
 } t_packet;
 
+// - INIT ----------------------------------------------------------------------
+char const* init(int argc, char *argv[]);
+
 // - CONNECTION DATA -----------------------------------------------------------
-// void get_connection_data(t_connection_data* data, char const* const str_addr);
 void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints);
 
 void destroy_connection_data(t_connection_data* const data);

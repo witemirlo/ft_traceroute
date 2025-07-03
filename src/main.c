@@ -12,31 +12,10 @@ void dump(void const* const buffer, size_t size)
 
 int main(int argc, char* argv[])
 {
-	t_connection_data data;
-	const char*       addr = NULL;
-	unsigned char     buffer[BUFSIZ];
+	const char* const addr = init(argc, argv);
 
-	for (int i = 1; i < argc; i++) {
-		if (ft_strcmp(argv[i], "--help") == 0) {
-			printf(
-				"Usage:\n"
-				"  %s host\n"
-				"Options:\n"
-				"  --help                      Read this help and exit\n"
-				"\n"
-				"Arguments:\n"
-				"+     host          The host to traceroute to\n"
-				, __progname
-			);
-			return EXIT_SUCCESS;
-		}
-		if (addr == NULL)
-			addr = argv[i];
-		else {
-			fprintf(stderr, "%s: Error: Bad option `%s'\n", __progname, argv[i]);
-			return EXIT_FAILURE;
-		}
-	}
+	t_connection_data data;
+	unsigned char     buffer[BUFSIZ];
 
 	ft_memset(&data, 0, sizeof(t_connection_data));
 
