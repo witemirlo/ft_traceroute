@@ -1,4 +1,7 @@
 #include "ft_traceroute.h"
+#include <netinet/in.h>
+#include <stdio.h>
+#include <sys/socket.h>
 
 uint16_t dst_port = 33434;
 
@@ -74,6 +77,14 @@ void get_connection_data(t_connection_data* data, char const* const str_addr, st
 	freeaddrinfo(result);
 
 	set_socket_options(data->sockfd);
+
+	struct sockaddr_in tmp = {0}; // TODO: limpiar
+	tmp.sin_addr.s_addr = INADDR_ANY;
+	tmp.sin_family = AF_INET;
+	if (bind(data->sockfd, (struct sockaddr*)&tmp, sizeof(tmp)) < 0) {
+		fprintf(stderr, "ft_traceroute: Error: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 }
 
 void destroy_connection_data(t_connection_data* const data)

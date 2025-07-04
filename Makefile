@@ -4,6 +4,7 @@ SRCS     := src/main.c\
 	    src/connection_data.c\
 	    src/icmp.c\
 	    src/init.c\
+	    src/routine.c\
 	    src/udp.c\
 	    src/utils.c
 

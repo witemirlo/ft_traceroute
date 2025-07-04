@@ -37,6 +37,9 @@ typedef struct s_packet
 // - INIT ----------------------------------------------------------------------
 char const* init(int argc, char *argv[]);
 
+// - ROUTINE -------------------------------------------------------------------
+void routine(t_connection_data* const data, char const* const addr);
+
 // - CONNECTION DATA -----------------------------------------------------------
 void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints);
 
