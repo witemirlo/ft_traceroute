@@ -1,4 +1,8 @@
 #include "ft_traceroute.h"
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <sys/socket.h>
 
 const uint8_t max_hops = 30;
 
@@ -10,92 +14,92 @@ static void dump(void const* const buffer, size_t size)
 	printf("\n");
 }
 
-void routine(t_connection_data* const data, char const* const addr)
+static bool routine_send(t_connection_data* data)
 {
-	struct timeval tv;
-	struct addrinfo hints = {0};
-	fd_set write_set, read_set;
 	struct icmp packet;
-	unsigned char     buffer[BUFSIZ];
+	fd_set      write_set;
 
-	struct ip* ip_ptr = (struct ip*)buffer;
-	struct icmp* icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
-
-	FD_ZERO(&write_set);
-	FD_ZERO(&read_set);
 	init_icmp(&packet);
 
+	FD_ZERO(&write_set);
+	FD_SET(data->sockfd, &write_set);
 
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_RAW;
-	hints.ai_protocol = IPPROTO_ICMP;
+	if (select(data->sockfd + 1, NULL, &write_set, NULL, NULL) < 0) {
+		return false;
+	}
+
+	if (FD_ISSET(data->sockfd, &write_set)) {
+		update_icmp(&packet, "", 0);
+		if (sendto(data->sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&(data->addr), data->addr_len) < 0) {
+			// TODO: control de errores
+			fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
+		}
+	}
+
+	return true;
+}
+
+static int routine_receive(t_connection_data* data)
+{
+	struct timeval tv = {.tv_sec = 5, .tv_usec = 0};
+	fd_set         read_set;
+
+	unsigned char  buffer[BUFSIZ];
+	struct ip*     ip_ptr = (struct ip*)buffer;
+	struct icmp*   icmp_ptr = (struct icmp*)(ip_ptr + sizeof(*ip_ptr));
+
+	ft_memset(buffer, 42, sizeof(buffer));
+
+	FD_ZERO(&read_set);
+	FD_SET(data->sockfd, &read_set);
+
+	if (select(data->sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
+		printf("  *");
+		return ICMP_ECHO;
+	}
+
+	if (FD_ISSET(data->sockfd, &read_set)) {
+		ssize_t ret;
+
+		if ((ret = recvfrom(data->sockfd, buffer, sizeof(buffer), MSG_DONTWAIT, (struct sockaddr*)&data->addr, &data->addr_len)) < 0) { // TODO: control de errores
+			fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data->sockfd, strerror(errno)); // TODO: borrar
+		}
+		// TODO: sólo los que tengan el ttl expired
+		// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
+
+		printf("  %s",
+			inet_ntoa(ip_ptr->ip_src)
+		);
+
+		// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
+		// TODO: comprobar el patete recibido para ver si ya ha terminado
+	} else {
+		// TODO: el else con el * de que no ha llegado en el tiempo
+	}
+	if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
+		return ICMP_ECHOREPLY;
+	return ICMP_ECHO;
+}
+
+void routine(t_connection_data* const data, char const* const addr)
+{
+	const uint8_t packets_per_round = 1;
+	uint8_t       packets_arrived = 0;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		printf("%2d", ttl_round);
-		get_connection_data(data, addr, &hints);
+		get_connection_data(data, addr);
 
-		for (int8_t n_packet = 0; n_packet < 1; n_packet++) { // TODO: cambiar a 3
-			// TODO: wip
-			tv.tv_sec = 5; // TODO: poner un 5
-			tv.tv_usec = 0;
-			
-			FD_CLR(data->sockfd, &write_set);
-			FD_CLR(data->sockfd, &read_set);
-
-			FD_SET(data->sockfd, &write_set);
-			FD_SET(data->sockfd, &read_set);
-
-			if (select(data->sockfd + 1, NULL, &write_set, NULL, NULL) < 0) {
-				continue;
-			}
-
-			if (FD_ISSET(data->sockfd, &write_set)) {
-				// struct icmp packet;
-				// set_udp(&packet);
-				update_icmp(&packet, "", 0);
-				if (sendto(data->sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&(data->addr), data->addr_len) < 0) {
-					// TODO: control de errores
-					fprintf(stderr, "%s:%d:\t%s\n", __FILE__, __LINE__, strerror(errno));
-				}
-			}
-
-			if (select(data->sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
-				// TODO: el paquete no ha llegado, poner *
-			}
-
-			if (FD_ISSET(data->sockfd, &read_set)) {
-				// TODO: leer el paquete
-				// TODO: que no edite el sockaddr original
-				ssize_t ret;
-				struct sockaddr_in tmp = data->addr;
-				socklen_t tmp2 = sizeof(tmp);
-				ft_memset(buffer, 255, sizeof(buffer));
-
-				if ((ret = recvfrom(data->sockfd, buffer, sizeof(buffer), 0, NULL, NULL)) < 0) { // TODO: control de errores
-					fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data->sockfd, strerror(errno)); // TODO: borrar
-				}
-				// TODO: sólo los que tengan el ttl expired
-				// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
-
-				printf("  %s",
-					// inet_ntoa(icmp_ptr->icmp_ip.ip_src)
-					inet_ntoa(ip_ptr->ip_src)
-				);
-
-				// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
-				// TODO: comprobar el patete recibido para ver si ya ha terminado
-			} else {
-				// TODO: el else con el * de que no ha llegado en el tiempo
-				printf("  *");
-			}
-			if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
-				break; // tendria que tener los tres paquetes recibidos
+		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
+			routine_send(data);
+			if (routine_receive(data) == ICMP_ECHOREPLY)
+				packets_arrived++;
 		}
+
 		printf("\n");
 		destroy_connection_data(data);
-		// TODO: si ya ha terminado salir del bucle
-		if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
-			break; // tendria que tener los tres paquetes recibidos
+
+		if (packets_arrived == packets_per_round)
+			break;
 	}
-	
 }

@@ -1,24 +1,24 @@
 #include "ft_traceroute.h"
-#include <netinet/in.h>
-#include <stdio.h>
-#include <sys/socket.h>
 
-uint16_t dst_port = 33434;
+static struct addrinfo get_hints(void)
+{
+	struct addrinfo hints = {0};
+
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_RAW;
+	hints.ai_protocol = IPPROTO_ICMP;
+
+	return hints;
+}
 
 static void get_addrinfo(char const* const addr, struct addrinfo const* const hints, struct addrinfo** result)
 {
-	int             ret;
-	char            buffer[BUFSIZ];
+	const int ret = getaddrinfo(addr, NULL, hints, result);
 
-	snprintf(buffer, sizeof(buffer), "%d", dst_port);
-	// ret = getaddrinfo(addr, buffer, hints, result);
-	ret = getaddrinfo(addr, NULL, hints, result);
 	if (ret < 0) {
 		fprintf(stderr, "%s:%d:\tft_traceroute: %s: %s\n", __FILE__, __LINE__, addr, gai_strerror(ret)); // TODO: limpiar lo del comienzo
 		exit(EXIT_FAILURE);
 	}
-
-	dst_port++;
 }
 
 static int get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)
@@ -43,7 +43,7 @@ static int get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)
 
 static void set_socket_options(int sockfd)
 {
-	static int ttl = 1;
+	static int32_t ttl = 1;
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
 		fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del  comienzo
@@ -58,15 +58,16 @@ static void set_socket_options(int sockfd)
 	ttl++;
 }
 
-void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints)
+void get_connection_data(t_connection_data* data, char const* const str_addr)
 {
-	struct addrinfo *result = NULL;
-	struct addrinfo *rp = NULL;
+	const struct addrinfo hints = get_hints();
+	struct addrinfo       *result = NULL;
+	struct addrinfo       *rp = NULL;
 
-	get_addrinfo(str_addr, hints, &result);
+	get_addrinfo(str_addr, &hints, &result);
 	data->sockfd = get_fd_from_addrinfo(result, &rp);
 
-	if (data->sockfd < 0) {
+	if (data->sockfd < 0 || rp == NULL) {
 		freeaddrinfo(result);
 		exit(EXIT_FAILURE);
 	}

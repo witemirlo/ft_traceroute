@@ -5,7 +5,6 @@ SRCS     := src/main.c\
 	    src/icmp.c\
 	    src/init.c\
 	    src/routine.c\
-	    src/udp.c\
 	    src/utils.c
 
 OBJS     := $(SRCS:.c=.o)

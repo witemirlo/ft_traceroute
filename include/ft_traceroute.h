@@ -8,6 +8,7 @@
 # include <netinet/ip.h>
 # include <netinet/ip_icmp.h>
 # include <netinet/udp.h>
+# include <stdbool.h>
 # include <stdint.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -17,9 +18,6 @@
 # include <sys/time.h>
 # include <sys/types.h>
 # include <unistd.h>
-
-// - PROGRAM NAME --------------------------------------------------------------
-extern uint16_t dst_port;
 
 // - TYPES ---------------------------------------------------------------------
 typedef struct s_connection_data {
@@ -41,7 +39,7 @@ char const* init(int argc, char *argv[]);
 void routine(t_connection_data* const data, char const* const addr);
 
 // - CONNECTION DATA -----------------------------------------------------------
-void get_connection_data(t_connection_data* data, char const* const str_addr, struct addrinfo const* const hints);
+void get_connection_data(t_connection_data* data, char const* const str_addr);
 
 void destroy_connection_data(t_connection_data* const data);
 void error_destroy_connection_data(t_connection_data* data);
