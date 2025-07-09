@@ -53,7 +53,10 @@ void icmp_checksum(struct icmp* const icmp, void const* const payload, size_t pa
 
 void update_icmp(struct icmp* const icmp, void const* const payload, size_t payload_size)
 {
+	static uint16_t seq = 0;
+
 	icmp_timestamp(icmp);
+	icmp->icmp_seq = htons(seq++);
 	icmp_checksum(icmp, payload, payload_size);
 }
 
