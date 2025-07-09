@@ -45,12 +45,6 @@ static void set_socket_options(int sockfd)
 {
 	static int32_t ttl = 1;
 
-	// TODO: BORRAR
-	// if (setsockopt(sockfd, IPPROTO_IP, IP_RECVERR, &ttl, sizeof(ttl)) < 0) {
-	// 	fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del  comienzo
-	// 	exit(EXIT_FAILURE);
-	// }
-
 	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
 		fprintf(stderr, "%s:%d:\tft_traceroute: Error: %s\n", __FILE__, __LINE__, strerror(errno)); // TODO: limpiar lo del  comienzo
 		exit(EXIT_FAILURE);

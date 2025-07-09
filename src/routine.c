@@ -2,6 +2,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/socket.h>
 
 const uint8_t max_hops = 30;
@@ -46,36 +47,33 @@ static int routine_receive(t_connection_data* data)
 
 	unsigned char  buffer[BUFSIZ];
 	struct ip*     ip_ptr = (struct ip*)buffer;
-	struct icmp*   icmp_ptr = (struct icmp*)(ip_ptr + sizeof(*ip_ptr));
+	struct icmp*   icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 
 	ft_memset(buffer, 42, sizeof(buffer));
 
 	FD_ZERO(&read_set);
 	FD_SET(data->sockfd, &read_set);
 
-	if (select(data->sockfd + 1, &read_set, NULL, NULL, &tv) < 0) {
-		printf("  *");
-		return ICMP_ECHO;
-	}
+	if (select(data->sockfd + 1, &read_set, NULL, NULL, &tv) < 0)
+		error_destroy_connection_data(data);
 
 	if (FD_ISSET(data->sockfd, &read_set)) {
 		ssize_t ret;
 
-		if ((ret = recvfrom(data->sockfd, buffer, sizeof(buffer), MSG_DONTWAIT, (struct sockaddr*)&data->addr, &data->addr_len)) < 0) { // TODO: control de errores
-			fprintf(stderr, "%s:%d:\tsockfd(%d): %s\n", __FILE__, __LINE__, data->sockfd, strerror(errno)); // TODO: borrar
-		}
-		// TODO: sólo los que tengan el ttl expired
-		// ((struct icmp*)(&buffer[sizeof(struct ip)]))->icmp_type
+		if ((ret = recvfrom(data->sockfd, buffer, sizeof(buffer), MSG_DONTWAIT, (struct sockaddr*)&data->addr, &data->addr_len)) < 0)
+			error_destroy_connection_data(data);
+
+		if (icmp_ptr->icmp_type == ICMP_ECHO)
+			return routine_receive(data);
 
 		printf("  %s",
 			inet_ntoa(ip_ptr->ip_src)
 		);
-
-		// TODO: comprobar que el paquete corresponde con los enviados (id, payload...)
-		// TODO: comprobar el patete recibido para ver si ya ha terminado
-	} else {
-		// TODO: el else con el * de que no ha llegado en el tiempo
 	}
+	else {
+		printf("  *");
+	}
+
 	if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
 		return ICMP_ECHOREPLY;
 	return ICMP_ECHO;
