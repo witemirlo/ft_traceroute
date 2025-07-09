@@ -1,5 +1,6 @@
 #include "ft_traceroute.h"
-#include <stdio.h>
+#include <stdint.h>
+#include <sys/time.h>
 
 const uint8_t max_hops = 30;
 char          msg[BUFSIZ];
@@ -10,6 +11,14 @@ static void dump(void const* const buffer, size_t size)
 	for (size_t i = 0; i < size; i++)
 		printf("%x ", ((uint8_t*)buffer)[i]);
 	printf("\n");
+}
+
+static float get_time_diff(struct timeval const* tv_start, struct timeval const* tv_end)
+{
+	return (
+		((uint32_t)tv_end->tv_sec * 1000) + ((uint32_t)tv_end->tv_usec / 1000.)
+		- ((uint32_t)tv_start->tv_sec * 1000) + ((uint32_t)tv_start->tv_usec / 1000.)
+	);
 }
 
 static bool routine_send(t_connection_data* data)
@@ -78,8 +87,10 @@ static int routine_receive(t_connection_data* data)
 
 void routine(t_connection_data* const data, char const* const addr)
 {
-	const uint8_t packets_per_round = 3;
-	uint8_t       packets_arrived;
+	const uint8_t  packets_per_round = 3;
+	uint8_t        packets_arrived;
+	struct timeval tv_start, tv_end;
+	float          time;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		snprintf(msg, sizeof(msg), "%2d ", ttl_round);
@@ -90,8 +101,20 @@ void routine(t_connection_data* const data, char const* const addr)
 		packets_arrived = 0;
 		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
 			routine_send(data);
+
+			if (gettimeofday(&tv_start, NULL) < 0)
+				error_destroy_connection_data(data);
+
 			if (routine_receive(data) == ICMP_ECHOREPLY)
 				packets_arrived++;
+
+			if (gettimeofday(&tv_end, NULL) < 0)
+				error_destroy_connection_data(data);
+
+			time = get_time_diff(&tv_start, &tv_end);
+			// TODO: tmp
+			snprintf(msg, sizeof(msg), "[%.2fms]  ", time);
+			write(STDIN_FILENO, msg, ft_strlen(msg));
 		}
 
 		snprintf(msg, sizeof(msg), "\n");
