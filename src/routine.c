@@ -1,4 +1,5 @@
 #include "ft_traceroute.h"
+#include <stdio.h>
 
 const uint8_t max_hops = 30;
 char          msg[BUFSIZ];
@@ -38,7 +39,7 @@ static bool routine_send(t_connection_data* data)
 
 static int routine_receive(t_connection_data* data)
 {
-	struct timeval tv = {.tv_sec = 5, .tv_usec = 0};
+	struct timeval tv = {.tv_sec = 1, .tv_usec = 0};
 	fd_set         read_set;
 
 	unsigned char  buffer[BUFSIZ];
@@ -78,7 +79,7 @@ static int routine_receive(t_connection_data* data)
 void routine(t_connection_data* const data, char const* const addr)
 {
 	const uint8_t packets_per_round = 3;
-	uint8_t       packets_arrived = 0;
+	uint8_t       packets_arrived;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		snprintf(msg, sizeof(msg), "%2d ", ttl_round);
@@ -86,6 +87,7 @@ void routine(t_connection_data* const data, char const* const addr)
 
 		get_connection_data(data, addr);
 
+		packets_arrived = 0;
 		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
 			routine_send(data);
 			if (routine_receive(data) == ICMP_ECHOREPLY)
@@ -100,4 +102,5 @@ void routine(t_connection_data* const data, char const* const addr)
 		if (packets_arrived == packets_per_round)
 			break;
 	}
+	destroy_connection_data(data);
 }
