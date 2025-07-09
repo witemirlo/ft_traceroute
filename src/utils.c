@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include "ft_traceroute.h"
 
 int ft_strcmp(const char *s1, const char *s2)
 {
@@ -44,4 +44,16 @@ void    *ft_memcpy(void *dst, const void *src, size_t n)
                 i++;
         }
         return (ptrdst);
+}
+
+size_t	ft_strlen(const char *s)
+{
+	size_t	len;
+
+	if (!s)
+		return (0);
+	len = 0;
+	while (s[len])
+		len++;
+	return (len);
 }

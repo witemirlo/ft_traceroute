@@ -1,11 +1,7 @@
 #include "ft_traceroute.h"
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <sys/socket.h>
 
 const uint8_t max_hops = 30;
+char          msg[BUFSIZ];
 
 static void dump(void const* const buffer, size_t size)
 {
@@ -66,12 +62,12 @@ static int routine_receive(t_connection_data* data)
 		if (icmp_ptr->icmp_type == ICMP_ECHO)
 			return routine_receive(data);
 
-		printf("  %s",
-			inet_ntoa(ip_ptr->ip_src)
-		);
+		snprintf(msg, sizeof(msg), "%s ", inet_ntoa(ip_ptr->ip_src));
+		write(STDIN_FILENO, msg, ft_strlen(msg));
 	}
 	else {
-		printf("  *");
+		snprintf(msg, sizeof(msg), "* ");
+		write(STDIN_FILENO, msg, ft_strlen(msg));
 	}
 
 	if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
@@ -81,11 +77,13 @@ static int routine_receive(t_connection_data* data)
 
 void routine(t_connection_data* const data, char const* const addr)
 {
-	const uint8_t packets_per_round = 1;
+	const uint8_t packets_per_round = 3;
 	uint8_t       packets_arrived = 0;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		printf("%2d", ttl_round);
+		snprintf(msg, sizeof(msg), "%2d ", ttl_round);
+		write(STDIN_FILENO, msg, ft_strlen(msg));
+
 		get_connection_data(data, addr);
 
 		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
@@ -94,7 +92,9 @@ void routine(t_connection_data* const data, char const* const addr)
 				packets_arrived++;
 		}
 
-		printf("\n");
+		snprintf(msg, sizeof(msg), "\n");
+		write(STDIN_FILENO, msg, ft_strlen(msg));
+
 		destroy_connection_data(data);
 
 		if (packets_arrived == packets_per_round)
