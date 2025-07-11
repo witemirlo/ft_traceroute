@@ -1,6 +1,4 @@
 #include "ft_traceroute.h"
-#include <stdint.h>
-#include <sys/time.h>
 
 const uint8_t max_hops = 30;
 char          msg[BUFSIZ];
@@ -13,12 +11,19 @@ static void dump(void const* const buffer, size_t size)
 	printf("\n");
 }
 
-static float get_time_diff(struct timeval const* tv_start, struct timeval const* tv_end)
+static double get_time_diff(void const* const packet, t_connection_data* data)
 {
-	return (
-		((uint32_t)tv_end->tv_sec * 1000) + ((uint32_t)tv_end->tv_usec / 1000.)
-		- ((uint32_t)tv_start->tv_sec * 1000) + ((uint32_t)tv_start->tv_usec / 1000.)
-	);
+	struct icmp const* icmp = (struct icmp*)((uint8_t*)packet + 8 + 20);
+	struct timeval tv;
+	long double t1, t2;
+
+	if (gettimeofday(&tv, NULL) < 0)
+		error_destroy_connection_data(data);
+
+	t1 = ((uint32_t)tv.tv_sec * 1000) + ((uint32_t)tv.tv_usec / 1000.);
+	t2 = (ntohl(icmp->icmp_otime) * 1000) + (ntohl(icmp->icmp_rtime) / 1000.);
+
+	return t1 - t2;
 }
 
 static bool routine_send(t_connection_data* data)
@@ -72,7 +77,10 @@ static int routine_receive(t_connection_data* data)
 		if (icmp_ptr->icmp_type == ICMP_ECHO)
 			return routine_receive(data);
 
-		snprintf(msg, sizeof(msg), "%s ", inet_ntoa(ip_ptr->ip_src));
+		
+		double time = get_time_diff(icmp_ptr, data);
+
+		snprintf(msg, sizeof(msg), "%s TODO[%.2f] ", inet_ntoa(ip_ptr->ip_src), time);
 		write(STDIN_FILENO, msg, ft_strlen(msg));
 	}
 	else {
@@ -89,8 +97,6 @@ void routine(t_connection_data* const data, char const* const addr)
 {
 	const uint8_t  packets_per_round = 3;
 	uint8_t        packets_arrived;
-	struct timeval tv_start, tv_end;
-	float          time;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		snprintf(msg, sizeof(msg), "%2d ", ttl_round);
@@ -102,19 +108,8 @@ void routine(t_connection_data* const data, char const* const addr)
 		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
 			routine_send(data);
 
-			if (gettimeofday(&tv_start, NULL) < 0)
-				error_destroy_connection_data(data);
-
 			if (routine_receive(data) == ICMP_ECHOREPLY)
 				packets_arrived++;
-
-			if (gettimeofday(&tv_end, NULL) < 0)
-				error_destroy_connection_data(data);
-
-			time = get_time_diff(&tv_start, &tv_end);
-			// TODO: tmp
-			snprintf(msg, sizeof(msg), "[%.2fms]  ", time);
-			write(STDIN_FILENO, msg, ft_strlen(msg));
 		}
 
 		snprintf(msg, sizeof(msg), "\n");
