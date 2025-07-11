@@ -29,8 +29,8 @@ ft_memset(void *b, int c, size_t len)
 	return (ptrb);
 }
 
-void   
-*ft_memcpy(void *dst, const void *src, size_t n)
+void*
+ft_memcpy(void *dst, const void *src, size_t n)
 {
         unsigned char           *ptrdst;
         const unsigned char     *ptrsrc;
