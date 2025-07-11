@@ -1,8 +1,7 @@
 #include "ft_traceroute.h"
-#include <bits/types/struct_timeval.h>
-#include <sys/time.h>
 
 const uint8_t max_hops = 30;
+const uint8_t packets_per_round = 5;
 char          msg[BUFSIZ];
 
 static void dump(void const* const buffer, size_t size)
@@ -24,6 +23,33 @@ static double calculate_time(t_connection_data* data, struct timeval const* star
 		((end_tv.tv_sec * 1000) + (end_tv.tv_usec / 1000.))
 		- ((start_tv->tv_sec * 1000) + (start_tv->tv_usec / 1000.))
 	);
+}
+
+static void print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
+{
+	static in_addr_t last_addr = 0;
+	const char       *str = NULL;	
+	double           time;
+
+	if (reset) {
+		last_addr = 0;
+		snprintf(msg, sizeof(msg), "\n");
+		write(STDIN_FILENO, msg, ft_strlen(msg));
+		return;
+	}
+
+	time = calculate_time(data, start_tv);
+
+	if (ip->ip_src.s_addr != last_addr) {
+		last_addr = ip->ip_src.s_addr;
+
+		str = inet_ntoa(ip->ip_src);
+		snprintf(msg, sizeof(msg), "%s (%s) ", str, str);
+		write(STDIN_FILENO, msg, ft_strlen(msg));
+	}
+
+	snprintf(msg, sizeof(msg), " %.3fms ", time);
+	write(STDIN_FILENO, msg, ft_strlen(msg));
 }
 
 static bool routine_send(t_connection_data* data)
@@ -53,7 +79,7 @@ static bool routine_send(t_connection_data* data)
 
 static int routine_receive(t_connection_data* data, struct timeval const* start_tv)
 {
-	struct timeval tv = {.tv_sec = 1, .tv_usec = 0};
+	struct timeval tv = {.tv_sec = 3, .tv_usec = 0};
 	fd_set         read_set;
 
 	unsigned char  buffer[BUFSIZ];
@@ -77,11 +103,7 @@ static int routine_receive(t_connection_data* data, struct timeval const* start_
 		if (icmp_ptr->icmp_type == ICMP_ECHO)
 			return routine_receive(data, start_tv);
 
-		
-		double time = calculate_time(data, start_tv);
-
-		snprintf(msg, sizeof(msg), "%s TODO[%.2f] ", inet_ntoa(ip_ptr->ip_src), time);
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		print(data, start_tv, ip_ptr, false);
 	}
 	else {
 		snprintf(msg, sizeof(msg), "* ");
@@ -95,12 +117,11 @@ static int routine_receive(t_connection_data* data, struct timeval const* start_
 
 void routine(t_connection_data* const data, char const* const addr)
 {
-	const uint8_t  packets_per_round = 3;
 	uint8_t        packets_arrived;
 	struct timeval start_tv;
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		snprintf(msg, sizeof(msg), "%2d ", ttl_round);
+		snprintf(msg, sizeof(msg), "%2d  ", ttl_round);
 		write(STDIN_FILENO, msg, ft_strlen(msg));
 
 		get_connection_data(data, addr);
@@ -115,8 +136,7 @@ void routine(t_connection_data* const data, char const* const addr)
 				packets_arrived++;
 		}
 
-		snprintf(msg, sizeof(msg), "\n");
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		print(data, NULL, NULL, true);
 
 		destroy_connection_data(data);
 
