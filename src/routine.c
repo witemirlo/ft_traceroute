@@ -28,11 +28,13 @@ static double calculate_time(t_connection_data* data, struct timeval const* star
 static void print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
 {
 	static in_addr_t last_addr = 0;
+	static bool      gateway = true;
 	const char       *str = NULL;	
 	double           time;
 
 	if (reset) {
 		last_addr = 0;
+		gateway = false;
 		snprintf(msg, sizeof(msg), "\n");
 		write(STDIN_FILENO, msg, ft_strlen(msg));
 		return;
@@ -42,9 +44,9 @@ static void print(t_connection_data* data, struct timeval const* start_tv, struc
 
 	if (ip->ip_src.s_addr != last_addr) {
 		last_addr = ip->ip_src.s_addr;
-
 		str = inet_ntoa(ip->ip_src);
-		snprintf(msg, sizeof(msg), "%s (%s) ", str, str);
+
+		snprintf(msg, sizeof(msg), "%s (%s) ", (gateway) ? "_gateway" : str, str);
 		write(STDIN_FILENO, msg, ft_strlen(msg));
 	}
 
@@ -143,5 +145,4 @@ void routine(t_connection_data* const data, char const* const addr)
 		if (packets_arrived == packets_per_round)
 			break;
 	}
-	destroy_connection_data(data);
 }
