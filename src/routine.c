@@ -1,7 +1,7 @@
 #include "ft_traceroute.h"
 
 const uint8_t max_hops = 30;
-const uint8_t packets_per_round = 5;
+const uint8_t packets_per_round = 3;
 char          msg[BUFSIZ];
 
 static void dump(void const* const buffer, size_t size)
