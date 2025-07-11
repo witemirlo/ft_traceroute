@@ -4,7 +4,8 @@ const uint8_t max_hops = 30;
 const uint8_t packets_per_round = 3;
 char          msg[BUFSIZ];
 
-static void dump(void const* const buffer, size_t size)
+static void
+dump(void const* const buffer, size_t size)
 {
 	printf("\n");
 	for (size_t i = 0; i < size; i++)
@@ -12,7 +13,8 @@ static void dump(void const* const buffer, size_t size)
 	printf("\n");
 }
 
-static double calculate_time(t_connection_data* data, struct timeval const* start_tv)
+static double
+calculate_time(t_connection_data* data, struct timeval const* start_tv)
 {
 	struct timeval end_tv;
 
@@ -25,7 +27,8 @@ static double calculate_time(t_connection_data* data, struct timeval const* star
 	);
 }
 
-static void print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
+static void
+print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
 {
 	static in_addr_t last_addr = 0;
 	static bool      gateway = true;
@@ -54,7 +57,8 @@ static void print(t_connection_data* data, struct timeval const* start_tv, struc
 	write(STDIN_FILENO, msg, ft_strlen(msg));
 }
 
-static bool routine_send(t_connection_data* data)
+static bool
+routine_send(t_connection_data* data)
 {
 	struct icmp packet;
 	fd_set      write_set;
@@ -79,7 +83,8 @@ static bool routine_send(t_connection_data* data)
 	return true;
 }
 
-static int routine_receive(t_connection_data* data, struct timeval const* start_tv)
+static int
+routine_receive(t_connection_data* data, struct timeval const* start_tv)
 {
 	struct timeval tv = {.tv_sec = 3, .tv_usec = 0};
 	fd_set         read_set;
@@ -117,7 +122,8 @@ static int routine_receive(t_connection_data* data, struct timeval const* start_
 	return ICMP_ECHO;
 }
 
-void routine(t_connection_data* const data, char const* const addr)
+void
+routine(t_connection_data* const data, char const* const addr)
 {
 	uint8_t        packets_arrived;
 	struct timeval start_tv;
@@ -129,7 +135,7 @@ void routine(t_connection_data* const data, char const* const addr)
 		get_connection_data(data, addr);
 
 		packets_arrived = 0;
-		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) { // TODO: cambiar a 3
+		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) {
 			routine_send(data);
 
 			if (gettimeofday(&start_tv, NULL) < 0)

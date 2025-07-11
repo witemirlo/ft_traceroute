@@ -1,6 +1,7 @@
 #include "ft_traceroute.h"
 
-static void usage_and_exit(FILE* stream, int code)
+static void
+usage_and_exit(FILE* stream, int code)
 {
 	fprintf(stream,
 		"Usage:\n"
@@ -15,7 +16,8 @@ static void usage_and_exit(FILE* stream, int code)
 	exit(code);
 }
 
-char const* init(int argc, char *argv[])
+char const*
+init(int argc, char *argv[])
 {
 	char const* addr = NULL;
 

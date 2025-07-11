@@ -1,6 +1,7 @@
 #include "ft_traceroute.h"
 
-int ft_strcmp(const char *s1, const char *s2)
+int
+ft_strcmp(const char *s1, const char *s2)
 {
 	while (*s1 != '\0' && *s2 != '\0') {
 		if (*s1 != *s2)
@@ -12,7 +13,8 @@ int ft_strcmp(const char *s1, const char *s2)
 	return *s1 - *s2;
 }
 
-void *ft_memset(void *b, int c, size_t len)
+void*
+ft_memset(void *b, int c, size_t len)
 {
 	size_t         i;
 	unsigned char *ptrb;
@@ -27,7 +29,8 @@ void *ft_memset(void *b, int c, size_t len)
 	return (ptrb);
 }
 
-void    *ft_memcpy(void *dst, const void *src, size_t n)
+void   
+*ft_memcpy(void *dst, const void *src, size_t n)
 {
         unsigned char           *ptrdst;
         const unsigned char     *ptrsrc;
@@ -46,7 +49,8 @@ void    *ft_memcpy(void *dst, const void *src, size_t n)
         return (ptrdst);
 }
 
-size_t	ft_strlen(const char *s)
+size_t
+ft_strlen(const char *s)
 {
 	size_t	len;
 

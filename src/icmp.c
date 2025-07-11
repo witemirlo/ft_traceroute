@@ -1,6 +1,7 @@
 #include "ft_traceroute.h"
 
-static u_int16_t sum_ones_complement(u_int16_t a, u_int16_t b)
+static u_int16_t
+sum_ones_complement(u_int16_t a, u_int16_t b)
 {
 	u_int32_t c = (u_int32_t)a + (u_int32_t)b;
 
@@ -10,13 +11,13 @@ static u_int16_t sum_ones_complement(u_int16_t a, u_int16_t b)
         return c;
 }
 
-static void icmp_timestamp(struct icmp* const icmp)
+static void
+icmp_timestamp(struct icmp* const icmp)
 {
         static uint16_t       seq = 0;
 	static struct timeval tv = {0};
 
 	if (gettimeofday(&tv, NULL) < 0) {
-		// TODO: errores, quizas retornar algo para que main limpie
 		return;
 	}
 
@@ -27,7 +28,8 @@ static void icmp_timestamp(struct icmp* const icmp)
         seq++;
 }
 
-void icmp_checksum(struct icmp* const icmp, void const* const payload, size_t payload_size)
+void
+icmp_checksum(struct icmp* const icmp, void const* const payload, size_t payload_size)
 {
 	icmp->icmp_cksum = 0;
 
@@ -51,7 +53,8 @@ void icmp_checksum(struct icmp* const icmp, void const* const payload, size_t pa
 	icmp->icmp_cksum = 0xffff - icmp->icmp_cksum;
 }
 
-void update_icmp(struct icmp* const icmp, void const* const payload, size_t payload_size)
+void
+update_icmp(struct icmp* const icmp, void const* const payload, size_t payload_size)
 {
 	static uint16_t seq = 0;
 
@@ -60,7 +63,8 @@ void update_icmp(struct icmp* const icmp, void const* const payload, size_t payl
 	icmp_checksum(icmp, payload, payload_size);
 }
 
-void init_icmp(struct icmp* const icmp)
+void
+init_icmp(struct icmp* const icmp)
 {
         memset(icmp, 0, sizeof(*icmp));
 
