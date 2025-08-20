@@ -1,25 +1,35 @@
 #include "ft_traceroute.h"
+#include <stdint.h>
+#include <sys/time.h>
+#include <time.h>
 
 const uint8_t max_hops = 30;
 const uint8_t packets_per_round = 3;
 char          msg[BUFSIZ];
 
 static double
-calculate_time(t_connection_data* data, struct timeval const* start_tv)
+calculate_time(t_connection_data* data, struct icmp* icmp_ptr)
 {
 	struct timeval end_tv;
+
+	char buffer[500];
+	end_tv.tv_sec = ntohl(icmp_ptr->icmp_otime);
+	struct tm *tm_info = localtime(&end_tv.tv_sec);
+	int i = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S\n", tm_info);
+	write(2, buffer, i);
 
 	if (gettimeofday(&end_tv, NULL) < 0)
 		error_destroy_connection_data(data);
 
+
 	return (
-		((end_tv.tv_sec * 1000) + (end_tv.tv_usec / 1000.))
-		- ((start_tv->tv_sec * 1000) + (start_tv->tv_usec / 1000.))
+		(((uint32_t)end_tv.tv_sec * 1000) + ((uint32_t)end_tv.tv_usec / 1000.))
+		- ((icmp_ptr->icmp_otime * 1000) + (icmp_ptr->icmp_rtime / 1000.))
 	);
 }
 
 static void
-print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
+print(t_connection_data* data, struct icmp* icmp_ptr, struct ip* ip, bool reset)
 {
 	static in_addr_t last_addr = 0;
 	static bool      gateway = true;
@@ -30,22 +40,22 @@ print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bo
 		last_addr = 0;
 		gateway = false;
 		snprintf(msg, sizeof(msg), "\n");
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		write(STDOUT_FILENO, msg, ft_strlen(msg));
 		return;
 	}
 
-	time = calculate_time(data, start_tv);
+	time = calculate_time(data, icmp_ptr);
 
 	if (ip->ip_src.s_addr != last_addr) {
 		last_addr = ip->ip_src.s_addr;
 		str = inet_ntoa(ip->ip_src);
 
 		snprintf(msg, sizeof(msg), "%s (%s) ", (gateway) ? "_gateway" : str, str);
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		write(STDOUT_FILENO, msg, ft_strlen(msg));
 	}
 
 	snprintf(msg, sizeof(msg), " %.3fms ", time);
-	write(STDIN_FILENO, msg, ft_strlen(msg));
+	write(STDOUT_FILENO, msg, ft_strlen(msg));
 }
 
 static bool
@@ -84,6 +94,9 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 	struct ip*     ip_ptr = (struct ip*)buffer;
 	struct icmp*   icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 
+	struct ip *inner_ip = (struct ip*)((unsigned char*)icmp_ptr + 8);
+	struct icmp *inner_icmp = (struct icmp*)((unsigned char*)inner_ip + inner_ip->ip_hl*4);
+
 	ft_memset(buffer, 42, sizeof(buffer));
 
 	FD_ZERO(&read_set);
@@ -101,7 +114,7 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 		if (icmp_ptr->icmp_type == ICMP_ECHO)
 			return routine_receive(data, start_tv);
 
-		print(data, start_tv, ip_ptr, false);
+		print(data, inner_icmp, ip_ptr, false);
 	}
 	else {
 		snprintf(msg, sizeof(msg), "* ");
@@ -121,7 +134,7 @@ routine(t_connection_data* const data, char const* const addr)
 
 	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
 		snprintf(msg, sizeof(msg), "%2d  ", ttl_round);
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		write(STDOUT_FILENO, msg, ft_strlen(msg));
 
 		get_connection_data(data, addr);
 
