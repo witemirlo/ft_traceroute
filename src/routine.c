@@ -1,7 +1,4 @@
 #include "ft_traceroute.h"
-#include <stdint.h>
-#include <sys/time.h>
-#include <time.h>
 
 const uint8_t max_hops = 30;
 const uint8_t packets_per_round = 3;
@@ -12,19 +9,12 @@ calculate_time(t_connection_data* data, struct icmp* icmp_ptr)
 {
 	struct timeval end_tv;
 
-	char buffer[500];
-	end_tv.tv_sec = ntohl(icmp_ptr->icmp_otime);
-	struct tm *tm_info = localtime(&end_tv.tv_sec);
-	int i = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S\n", tm_info);
-	write(2, buffer, i);
-
 	if (gettimeofday(&end_tv, NULL) < 0)
 		error_destroy_connection_data(data);
 
-
 	return (
 		(((uint32_t)end_tv.tv_sec * 1000) + ((uint32_t)end_tv.tv_usec / 1000.))
-		- ((icmp_ptr->icmp_otime * 1000) + (icmp_ptr->icmp_rtime / 1000.))
+		- ((ntohl(icmp_ptr->icmp_otime) * 1000) + (ntohl(icmp_ptr->icmp_rtime) / 1000.))
 	);
 }
 
@@ -94,8 +84,7 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 	struct ip*     ip_ptr = (struct ip*)buffer;
 	struct icmp*   icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 
-	struct ip *inner_ip = (struct ip*)((unsigned char*)icmp_ptr + 8);
-	struct icmp *inner_icmp = (struct icmp*)((unsigned char*)inner_ip + inner_ip->ip_hl*4);
+	struct icmp *inner_icmp = (struct icmp*)((uint8_t*)icmp_ptr + 8 + 20);
 
 	ft_memset(buffer, 42, sizeof(buffer));
 
@@ -118,7 +107,7 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 	}
 	else {
 		snprintf(msg, sizeof(msg), "* ");
-		write(STDIN_FILENO, msg, ft_strlen(msg));
+		write(STDOUT_FILENO, msg, ft_strlen(msg));
 	}
 
 	if (icmp_ptr->icmp_type == ICMP_ECHOREPLY)
