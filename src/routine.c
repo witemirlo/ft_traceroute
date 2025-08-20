@@ -4,15 +4,6 @@ const uint8_t max_hops = 30;
 const uint8_t packets_per_round = 3;
 char          msg[BUFSIZ];
 
-static void
-dump(void const* const buffer, size_t size)
-{
-	printf("\n");
-	for (size_t i = 0; i < size; i++)
-		printf("%x ", ((uint8_t*)buffer)[i]);
-	printf("\n");
-}
-
 static double
 calculate_time(t_connection_data* data, struct timeval const* start_tv)
 {
@@ -135,11 +126,15 @@ routine(t_connection_data* const data, char const* const addr)
 		get_connection_data(data, addr);
 
 		packets_arrived = 0;
+
+		if (gettimeofday(&start_tv, NULL) < 0)
+			error_destroy_connection_data(data);
+
 		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) {
 			routine_send(data);
+		}
 
-			if (gettimeofday(&start_tv, NULL) < 0)
-				error_destroy_connection_data(data);
+		for (int8_t n_packet = 0; n_packet < packets_per_round; n_packet++) {
 			if (routine_receive(data, &start_tv) == ICMP_ECHOREPLY)
 				packets_arrived++;
 		}
