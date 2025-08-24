@@ -1,11 +1,14 @@
 #include "ft_traceroute.h"
+#include <bits/types/struct_timeval.h>
+#include <netinet/in.h>
+#include <stdint.h>
 
 const uint8_t max_hops = 30;
 const uint8_t packets_per_round = 3;
 char          msg[BUFSIZ];
 
 static double
-calculate_time(t_connection_data* data, struct icmp* icmp_ptr)
+calculate_time(t_connection_data* data, struct timeval const* const start)
 {
 	struct timeval end_tv;
 
@@ -13,13 +16,13 @@ calculate_time(t_connection_data* data, struct icmp* icmp_ptr)
 		error_destroy_connection_data(data);
 
 	return (
-		(((uint32_t)end_tv.tv_sec * 1000) + ((uint32_t)end_tv.tv_usec / 1000.))
-		- ((ntohl(icmp_ptr->icmp_otime) * 1000) + (ntohl(icmp_ptr->icmp_rtime) / 1000.))
+		(end_tv.tv_sec - start->tv_sec) * 1000.
+		+ (end_tv.tv_usec - start->tv_usec) / 1000.
 	);
 }
 
 static void
-print(t_connection_data* data, struct icmp* icmp_ptr, struct ip* ip, bool reset)
+print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
 {
 	static in_addr_t last_addr = 0;
 	static bool      gateway = true;
@@ -34,7 +37,7 @@ print(t_connection_data* data, struct icmp* icmp_ptr, struct ip* ip, bool reset)
 		return;
 	}
 
-	time = calculate_time(data, icmp_ptr);
+	time = calculate_time(data, start_tv);
 
 	if (ip->ip_src.s_addr != last_addr) {
 		last_addr = ip->ip_src.s_addr;
@@ -84,8 +87,6 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 	struct ip*     ip_ptr = (struct ip*)buffer;
 	struct icmp*   icmp_ptr = (struct icmp*)(buffer + sizeof(struct ip));
 
-	struct icmp *inner_icmp = (struct icmp*)((uint8_t*)icmp_ptr + 8 + 20);
-
 	ft_memset(buffer, 42, sizeof(buffer));
 
 	FD_ZERO(&read_set);
@@ -103,7 +104,7 @@ routine_receive(t_connection_data* data, struct timeval const* start_tv)
 		if (icmp_ptr->icmp_type == ICMP_ECHO)
 			return routine_receive(data, start_tv);
 
-		print(data, inner_icmp, ip_ptr, false);
+		print(data, start_tv, ip_ptr, false);
 	}
 	else {
 		snprintf(msg, sizeof(msg), "* ");

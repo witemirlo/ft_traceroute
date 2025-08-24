@@ -5,27 +5,22 @@ sum_ones_complement(u_int16_t a, u_int16_t b)
 {
 	u_int32_t c = (u_int32_t)a + (u_int32_t)b;
 
-        while(0xff0000 & c)
-                c = (c & 0xffff) + 1;
+	while(0xff0000 & c)
+		c = (c & 0xffff) + 1;
 
-        return c;
+	return c;
 }
 
 static void
 icmp_timestamp(struct icmp* const icmp)
 {
-        static uint16_t       seq = 0;
 	static struct timeval tv = {0};
 
-	if (gettimeofday(&tv, NULL) < 0) {
+	if (gettimeofday(&tv, NULL) < 0)
 		return;
-	}
 
 	icmp->icmp_otime = htonl(tv.tv_sec);
 	icmp->icmp_rtime = htonl(tv.tv_usec);
-	icmp->icmp_seq = htons(seq);
-
-        seq++;
 }
 
 void
@@ -66,9 +61,9 @@ update_icmp(struct icmp* const icmp, void const* const payload, size_t payload_s
 void
 init_icmp(struct icmp* const icmp)
 {
-        memset(icmp, 0, sizeof(*icmp));
+	ft_memset(icmp, 0, sizeof(*icmp));
 
-        icmp->icmp_type = ICMP_ECHO;
+	icmp->icmp_type = ICMP_ECHO;
 	icmp->icmp_code = 0;
 	icmp->icmp_id = 0x42;
 }
