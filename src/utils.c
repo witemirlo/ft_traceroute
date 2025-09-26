@@ -3,7 +3,7 @@
 void
 print_header(t_connection_data* const data, char const* const addr)
 {
-	snprintf(msg, sizeof(msg), "ft_traceroute to %s (%s), %d hops max, 60 byte packets\n"
+	snprintf(msg, sizeof(msg), "ft_traceroute to %s (%s), %d hops max, 48 byte packets\n"
 		,addr
 		,inet_ntoa(data->addr.sin_addr)
 		,max_hops);
