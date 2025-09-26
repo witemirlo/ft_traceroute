@@ -127,6 +127,8 @@ routine(t_connection_data* const data, char const* const addr)
 		write(STDOUT_FILENO, msg, ft_strlen(msg));
 
 		get_connection_data(data, addr);
+		if (ttl_round == 1)
+			print_header(data, addr);
 
 		packets_arrived = 0;
 

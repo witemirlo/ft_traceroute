@@ -32,6 +32,11 @@ typedef struct s_packet
         char          payload[32];
 } t_packet;
 
+// - GLOBALS -------------------------------------------------------------------
+extern const uint8_t max_hops;
+extern const uint8_t packets_per_round;
+extern char msg[BUFSIZ];
+
 // - INIT ----------------------------------------------------------------------
 char const* init(int argc, char *argv[]);
 
@@ -45,6 +50,7 @@ void destroy_connection_data(t_connection_data* const data);
 void error_destroy_connection_data(t_connection_data* data);
 
 // - UTILS ---------------------------------------------------------------------
+void print_header(t_connection_data* const data, char const* const addr);
 int ft_strcmp(const char *s1, const char *s2);
 void *ft_memset(void *b, int c, size_t len);
 void *ft_memcpy(void *dst, const void *src, size_t n);
