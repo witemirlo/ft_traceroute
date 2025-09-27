@@ -59,6 +59,12 @@ case_first(char const* const str)
 		exit(EXIT_FAILURE);
 	}
 	
+	if (n < 1)
+	{
+		fprintf(stderr, "first hop out of range\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	current_hop = n;
 }
 
@@ -79,6 +85,12 @@ case_max(char const* const str)
 		exit(EXIT_FAILURE);
 	}
 
+	if (n < 1)
+	{
+		fprintf(stderr, "max hops out of range\n");
+		exit(EXIT_FAILURE);
+	}
+
 	max_hop = n;
 }
 
@@ -86,6 +98,32 @@ static void
 case_resolve_dns(void)
 {
 	dns_resolution = true;
+}
+
+static void
+case_queries(char const* const str)
+{
+	int n;
+
+	if ((n = parse_num(str)) < 0)
+	{
+		fprintf(stderr, "Cannot handle `--queries' option with arg `%s'\n", str);
+		exit(EXIT_FAILURE);
+	}
+
+	if (n > 10)
+	{
+		fprintf(stderr, "no more than 10 probes per hop\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	if (n < 1)
+	{
+		fprintf(stderr, "no less than 1 probes per hop\n");
+		exit(EXIT_FAILURE);
+	}
+
+	packets_per_round = n;
 }
 
 static void
@@ -100,19 +138,16 @@ option(char const* const str)
 	if (ft_strncmp(str, "resolve-dns", ft_strlen("resolve-dns")) == 0)
 		return case_resolve_dns();
 
+	if (ft_strncmp(str, "queries=", ft_strlen("queries=")) == 0)
+		return case_queries(str + ft_strlen("queries="));
+
 	fprintf(stderr, "Bad option `--%s'\n", str);
 	exit(EXIT_FAILURE);
 }
 
 void
-validate_config()
+check_first_hop_is_lower_than_max_hop()
 {
-	if (current_hop < 1)
-	{
-		fprintf(stderr, "first hop out of range\n");
-		exit(EXIT_FAILURE);
-	}
-
 	if (current_hop > max_hop)
 	{
 		fprintf(stderr, "first hop out of range\n");
@@ -143,7 +178,7 @@ init(int argc, char *argv[])
 	if (addr == NULL)
 		usage_and_exit(stdout, EXIT_FAILURE);
 
-	validate_config();
+	check_first_hop_is_lower_than_max_hop();
 
 	return addr;
 }
