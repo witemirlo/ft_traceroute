@@ -1,5 +1,4 @@
 #include "ft_traceroute.h"
-#include <cstdlib>
 
 static void
 usage_and_exit(FILE* stream, int code)
