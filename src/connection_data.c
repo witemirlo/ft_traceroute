@@ -1,4 +1,5 @@
 #include "ft_traceroute.h"
+#include <stdint.h>
 
 static struct addrinfo
 get_hints(void)
@@ -47,14 +48,12 @@ get_fd_from_addrinfo(struct addrinfo* addr, struct addrinfo** rp)
 static void
 set_socket_options(int sockfd)
 {
-	static int32_t ttl = 1;
-
-	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
+	if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &current_hop, sizeof(current_hop)) < 0) {
 		fprintf(stderr, "ft_traceroute: Error: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	ttl++;
+	current_hop++;
 }
 
 void

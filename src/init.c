@@ -1,5 +1,8 @@
 #include "ft_traceroute.h"
-#include <stdio.h>
+
+uint8_t current_hop = 1;
+uint8_t max_hop = 30;
+uint8_t packets_per_round = 3;
 
 static void
 usage_and_exit(FILE* stream, int code)
@@ -9,6 +12,7 @@ usage_and_exit(FILE* stream, int code)
 		"  ft_traceroute host\n"
 		"Options:\n"
 		"  --help            Read this help and exit\n"
+		"  --first=first_ttl Start from the first_ttl hop (instead from 1)\n"
 		"\n"
 		"Arguments:\n"
 		"+     host          The host to traceroute to\n"
@@ -44,15 +48,31 @@ void case_first(char const* const str)
 		exit(EXIT_FAILURE);
 	}
 
-	if (n < 1)
+	current_hop = n;
+}
+
+void
+option(char const* const str)
+{
+	if (ft_strncmp(str, "first=", 6) == 0)
+		return case_first(str + 6);
+
+	fprintf(stderr, "Bad option `--%s'\n", str);
+	exit(EXIT_FAILURE);
+}
+
+void
+validate_config()
+{
+	if (current_hop < 1)
 	{
-		fprintf(stderr, "");
+		fprintf(stderr, "first hop out of range\n");
 		exit(EXIT_FAILURE);
 	}
 
-	if (n > max_hops)
+	if (current_hop > max_hop)
 	{
-		fprintf(stderr, "");
+		fprintf(stderr, "first hop out of range\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -63,22 +83,24 @@ init(int argc, char *argv[])
 	char const* addr = NULL;
 
 	for (int i = 1; i < argc; i++) {
-		if (ft_strncmp(argv[i], "--first=", ft_strlen("--first=")) == 0)
-		{
-			case_first(argv[i] + ft_strlen("--first="));
-			continue;
-		}
-
 		if (ft_strcmp(argv[i], "--help") == 0 ||
 		    addr != NULL)
-			usage_and_exit(stderr, EXIT_FAILURE);
+			usage_and_exit(stderr, EXIT_SUCCESS);
+
+		if (ft_strncmp(argv[i], "--", ft_strlen("--")) == 0)
+		{
+			option(argv[i] + 2);
+			continue;
+		}
 
 		if (addr == NULL)
 			addr = argv[i];
 	}
 
 	if (addr == NULL)
-		usage_and_exit(stdout, EXIT_SUCCESS);
+		usage_and_exit(stdout, EXIT_FAILURE);
+
+	validate_config();
 
 	return addr;
 }

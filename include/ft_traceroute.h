@@ -33,8 +33,9 @@ typedef struct s_packet
 } t_packet;
 
 // - GLOBALS -------------------------------------------------------------------
-extern const uint8_t max_hops;
-extern const uint8_t packets_per_round;
+extern uint8_t current_hop;
+extern uint8_t max_hop;
+extern uint8_t packets_per_round;
 extern char msg[BUFSIZ];
 
 // - INIT ----------------------------------------------------------------------

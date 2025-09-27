@@ -1,11 +1,6 @@
 #include "ft_traceroute.h"
-#include <bits/types/struct_timeval.h>
-#include <netinet/in.h>
-#include <stdint.h>
 
-const uint8_t max_hops = 30;
-const uint8_t packets_per_round = 3;
-char          msg[BUFSIZ];
+char msg[BUFSIZ];
 
 static double
 calculate_time(t_connection_data* data, struct timeval const* const start)
@@ -122,13 +117,13 @@ routine(t_connection_data* const data, char const* const addr)
 	uint8_t        packets_arrived;
 	struct timeval start_tv;
 
-	for (uint8_t ttl_round = 1; ttl_round <= max_hops; ttl_round++) {
-		snprintf(msg, sizeof(msg), "%2d  ", ttl_round);
-		write(STDOUT_FILENO, msg, ft_strlen(msg));
-
+	for (uint8_t ttl_round = current_hop; ttl_round <= max_hop; ttl_round++) {
 		get_connection_data(data, addr);
 		if (ttl_round == 1)
 			print_header(data, addr);
+
+		snprintf(msg, sizeof(msg), "%2d  ", ttl_round);
+		write(STDOUT_FILENO, msg, ft_strlen(msg));
 
 		packets_arrived = 0;
 
