@@ -15,6 +15,7 @@ usage_and_exit(FILE* stream, int code)
 		"  --help             Read this help and exit\n"
 		"  --first=first_ttl  Start from the first_ttl hop (instead from 1)\n"
 		"  --max-hops=max_ttl Set the max number of hops (max TTL to be reached). Default is 30\n"
+		"  --resolve-dns      Make dns resolution\n"
 		"\n"
 		"Arguments:\n"
 		"+     host          The host to traceroute to\n"
