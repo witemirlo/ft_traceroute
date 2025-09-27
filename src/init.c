@@ -11,8 +11,9 @@ usage_and_exit(FILE* stream, int code)
 		"Usage:\n"
 		"  ft_traceroute host\n"
 		"Options:\n"
-		"  --help            Read this help and exit\n"
-		"  --first=first_ttl Start from the first_ttl hop (instead from 1)\n"
+		"  --help             Read this help and exit\n"
+		"  --first=first_ttl  Start from the first_ttl hop (instead from 1)\n"
+		"  --max-hops=max_ttl Set the max number of hops (max TTL to be reached). Default is 30\n"
 		"\n"
 		"Arguments:\n"
 		"+     host          The host to traceroute to\n"
@@ -38,7 +39,8 @@ parse_num(char const* const str)
         return ft_atoi(str);
 }
 
-void case_first(char const* const str)
+static void
+case_first(char const* const str)
 {
 	int n;
 
@@ -51,11 +53,28 @@ void case_first(char const* const str)
 	current_hop = n;
 }
 
-void
+static void
+case_max(char const* const str)
+{
+	int n;
+
+	if ((n = parse_num(str)) < 0)
+	{
+		fprintf(stderr, "Cannot handle `--max-hops' option with arg `%s'\n", str);
+		exit(EXIT_FAILURE);
+	}
+
+	max_hop = n;
+}
+
+static void
 option(char const* const str)
 {
-	if (ft_strncmp(str, "first=", 6) == 0)
-		return case_first(str + 6);
+	if (ft_strncmp(str, "first=", ft_strlen("first=")) == 0)
+		return case_first(str + ft_strlen("first="));
+
+	if (ft_strncmp(str, "max-hops=", ft_strlen("max-hops=")) == 0)
+		return case_max(str + ft_strlen("max-hops="));
 
 	fprintf(stderr, "Bad option `--%s'\n", str);
 	exit(EXIT_FAILURE);

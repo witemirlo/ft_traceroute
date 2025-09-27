@@ -20,13 +20,11 @@ static void
 print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bool reset)
 {
 	static in_addr_t last_addr = 0;
-	static bool      gateway = true;
 	const char       *str = NULL;	
 	double           time;
 
 	if (reset) {
 		last_addr = 0;
-		gateway = false;
 		snprintf(msg, sizeof(msg), "\n");
 		write(STDOUT_FILENO, msg, ft_strlen(msg));
 		return;
@@ -38,7 +36,7 @@ print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bo
 		last_addr = ip->ip_src.s_addr;
 		str = inet_ntoa(ip->ip_src);
 
-		snprintf(msg, sizeof(msg), "%s (%s) ", (gateway) ? "_gateway" : str, str);
+		snprintf(msg, sizeof(msg), "%s (%s) ", (current_hop == 2) ? "_gateway" : str, str); /*NOTE: current hop at 2 because it is autoincremented in socket setting*/
 		write(STDOUT_FILENO, msg, ft_strlen(msg));
 	}
 
