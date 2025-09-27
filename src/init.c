@@ -1,5 +1,6 @@
 #include "ft_traceroute.h"
 
+bool dns_resolution = false;
 uint8_t current_hop = 1;
 uint8_t max_hop = 30;
 uint8_t packets_per_round = 3;
@@ -80,6 +81,12 @@ case_max(char const* const str)
 }
 
 static void
+case_resolve_dns(void)
+{
+	dns_resolution = true;
+}
+
+static void
 option(char const* const str)
 {
 	if (ft_strncmp(str, "first=", ft_strlen("first=")) == 0)
@@ -87,6 +94,9 @@ option(char const* const str)
 
 	if (ft_strncmp(str, "max-hops=", ft_strlen("max-hops=")) == 0)
 		return case_max(str + ft_strlen("max-hops="));
+
+	if (ft_strncmp(str, "resolve-dns", ft_strlen("resolve-dns")) == 0)
+		return case_resolve_dns();
 
 	fprintf(stderr, "Bad option `--%s'\n", str);
 	exit(EXIT_FAILURE);

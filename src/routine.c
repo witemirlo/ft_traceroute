@@ -21,6 +21,7 @@ print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bo
 {
 	static in_addr_t last_addr = 0;
 	const char       *str = NULL;	
+	char             host[BUFSIZ / 4];
 	double           time;
 
 	if (reset) {
@@ -36,7 +37,12 @@ print(t_connection_data* data, struct timeval const* start_tv, struct ip* ip, bo
 		last_addr = ip->ip_src.s_addr;
 		str = inet_ntoa(ip->ip_src);
 
-		snprintf(msg, sizeof(msg), "%s (%s) ", (current_hop == 2) ? "_gateway" : str, str); /*NOTE: current hop at 2 because it is autoincremented in socket setting*/
+		if (dns_resolution)
+			getnameinfo((struct sockaddr*)(&data->addr), data->addr_len, host, BUFSIZ / 4, NULL, 0, 0);
+		else
+			ft_memcpy(host, str, ft_strlen(str));
+
+		snprintf(msg, sizeof(msg), "%s (%s) ", host, str);
 		write(STDOUT_FILENO, msg, ft_strlen(msg));
 	}
 

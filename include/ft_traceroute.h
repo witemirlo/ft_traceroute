@@ -33,6 +33,7 @@ typedef struct s_packet
 } t_packet;
 
 // - GLOBALS -------------------------------------------------------------------
+extern bool dns_resolution;
 extern uint8_t current_hop;
 extern uint8_t max_hop;
 extern uint8_t packets_per_round;
