@@ -29,7 +29,7 @@ parse_num(char const* const str)
 		return -1;
 
         for (size_t i = 0; str[i]; i++) {
-                if (ft_isdigit(str[i]))
+                if (i < 5 && ft_isdigit(str[i]))
                         continue;
 
                 fprintf(stderr, "ft_traceroute: invalid value (`%s' near `%s')\n", str, str + i);
@@ -50,6 +50,12 @@ case_first(char const* const str)
 		exit(EXIT_FAILURE);
 	}
 
+	if (n > 255)
+	{
+		fprintf(stderr, "first hop out of range\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	current_hop = n;
 }
 
@@ -61,6 +67,12 @@ case_max(char const* const str)
 	if ((n = parse_num(str)) < 0)
 	{
 		fprintf(stderr, "Cannot handle `--max-hops' option with arg `%s'\n", str);
+		exit(EXIT_FAILURE);
+	}
+
+	if (n > 255)
+	{
+		fprintf(stderr, "max hops cannot be more than 255\n");
 		exit(EXIT_FAILURE);
 	}
 
