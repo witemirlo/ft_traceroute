@@ -4,6 +4,7 @@ bool dns_resolution = false;
 uint8_t current_hop = 1;
 uint8_t max_hop = 30;
 uint8_t packets_per_round = 3;
+uint16_t seq = 0;
 
 static void
 usage_and_exit(FILE* stream, int code)
@@ -15,6 +16,7 @@ usage_and_exit(FILE* stream, int code)
 		"  --first=first_ttl  Start from the first_ttl hop (instead from 1)\n"
 		"  --help             Read this help and exit\n"
 		"  --max-hops=max_ttl Set the max number of hops (max TTL to be reached). Default is 30\n"
+		"  --port=port        Set the initial seq for \"icmp\" (incremented by each probe, default is 0)\n"
 		"  --queries=nqueries Set the number of probes per each hop. Default is 3\n"
 		"  --resolve-dns      Make dns resolution\n"
 		"\n"
@@ -127,6 +129,32 @@ case_queries(char const* const str)
 }
 
 static void
+case_port(char const* const str)
+{
+	int n;
+
+	if ((n = parse_num(str)) < 0)
+	{
+		fprintf(stderr, "Cannot handle `--port' option with arg `%s'\n", str);
+		exit(EXIT_FAILURE);
+	}
+
+	if (n > 65535)
+	{
+		fprintf(stderr, "initial seq cannot be more than 65535\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (n < 1)
+	{
+		fprintf(stderr, "seq out of range\n");
+		exit(EXIT_FAILURE);
+	}
+
+	seq = n;
+}
+
+static void
 option(char const* const str)
 {
 	if (ft_strncmp(str, "first=", ft_strlen("first=")) == 0)
@@ -140,6 +168,9 @@ option(char const* const str)
 
 	if (ft_strncmp(str, "queries=", ft_strlen("queries=")) == 0)
 		return case_queries(str + ft_strlen("queries="));
+
+	if (ft_strncmp(str, "port=", ft_strlen("port=")) == 0)
+		return case_port(str + ft_strlen("port="));
 
 	fprintf(stderr, "Bad option `--%s'\n", str);
 	exit(EXIT_FAILURE);

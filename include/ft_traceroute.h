@@ -37,6 +37,7 @@ extern bool dns_resolution;
 extern uint8_t current_hop;
 extern uint8_t max_hop;
 extern uint8_t packets_per_round;
+extern uint16_t seq;
 extern char msg[BUFSIZ];
 
 // - INIT ----------------------------------------------------------------------
